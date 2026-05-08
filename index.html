@@ -214,7 +214,9 @@ src="https://cdn-icons-png.flaticon.com/512/5968/5968756.png"
 class="logo-img"
 >
 
-<div class="logo">IPUNGG SHOP</div>
+<div class="logo" id="storeName">
+IPUNGG SHOP
+</div>
 
 </div>
 
@@ -230,7 +232,10 @@ class="logo-img"
 </nav>
 
 <div class="banner">
-<img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200">
+<img 
+id="bannerImage"
+src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200"
+>
 </div>
 
 <div class="category">
@@ -240,60 +245,7 @@ class="logo-img"
 <button onclick="showCategory('script')">SOURCE CODE</button>
 </div>
 
-<div class="products">
-
-<div class="card item bot">
-
-<img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1200">
-
-<div class="card-content">
-
-<h3>Sewa Bot</h3>
-
-<div class="price">Rp15.000</div>
-
-<button class="btn" onclick="buyProduct('SEWA BOT')">
-ORDER
-</button>
-
-</div>
-</div>
-
-<div class="card item panel">
-
-<img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200">
-
-<div class="card-content">
-
-<h3>Panel</h3>
-
-<div class="price">Rp5.000</div>
-
-<button class="btn" onclick="buyProduct('PANEL')">
-ORDER
-</button>
-
-</div>
-</div>
-
-<div class="card item script">
-
-<img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200">
-
-<div class="card-content">
-
-<h3>Source Code</h3>
-
-<div class="price">Rp50.000</div>
-
-<button class="btn" onclick="buyProduct('SOURCE CODE')">
-ORDER
-</button>
-
-</div>
-</div>
-
-</div>
+<div class="products"></div>
 
 <div class="overlay" id="overlay">
 
@@ -319,7 +271,7 @@ BAYAR SEKARANG
 
 <img 
 class="qris" 
-src="https://upload.wikimedia.org/wikipedia/commons/8/80/QR_code_for_mobile_English_Wikipedia.svg"
+src="https://img2.pixhost.to/images/7739/723666370_elaina-1778206415636.jpg
 >
 
 <p class="upload-text">
@@ -351,6 +303,69 @@ KIRIM KE OWNER
 </div>
 
 <script>
+
+const storeName=
+localStorage.getItem('storeName');
+
+if(storeName){
+document.getElementById('storeName').innerText=
+storeName;
+}
+
+const banner=
+localStorage.getItem('banner');
+
+if(banner){
+document.getElementById('bannerImage').src=
+banner;
+}
+
+function loadProducts(){
+
+const productsContainer=
+document.querySelector('.products');
+
+productsContainer.innerHTML='';
+
+const products=
+JSON.parse(localStorage.getItem('products')) || [];
+
+products.forEach(product=>{
+
+const card=`
+
+<div class="card item ${product.category}">
+
+<img src="${product.image}">
+
+<div class="card-content">
+
+<h3>${product.name}</h3>
+
+<div class="price">
+${product.price}
+</div>
+
+<button 
+class="btn"
+onclick="buyProduct('${product.name}')"
+>
+ORDER
+</button>
+
+</div>
+
+</div>
+
+`;
+
+productsContainer.innerHTML += card;
+
+});
+
+}
+
+loadProducts();
 
 function toggleMenu(event){
 
