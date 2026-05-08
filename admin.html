@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ADMIN IPUNGG SHOP</title>
-<link rel="stylesheet" href="css.style">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -118,7 +118,8 @@ UBAH PASSWORD
 
 function saveStoreName(){
 
-const name=document.getElementById('storeName').value;
+const name=
+document.getElementById('storeName').value;
 
 localStorage.setItem('storeName',name);
 
@@ -128,7 +129,8 @@ alert('Nama store berhasil disimpan');
 
 function saveBanner(){
 
-const url=document.getElementById('bannerUrl').value;
+const url=
+document.getElementById('bannerUrl').value;
 
 localStorage.setItem('banner',url);
 
@@ -161,10 +163,17 @@ alert('Kategori berhasil ditambahkan');
 
 function addProduct(){
 
-const name=document.getElementById('productName').value;
-const price=document.getElementById('productPrice').value;
-const image=document.getElementById('productImage').value;
-const category=document.getElementById('productCategory').value;
+const name=
+document.getElementById('productName').value;
+
+const price=
+document.getElementById('productPrice').value;
+
+const image=
+document.getElementById('productImage').value;
+
+const category=
+document.getElementById('productCategory').value;
 
 const product={
 name,
@@ -189,7 +198,8 @@ alert('Produk berhasil ditambahkan');
 
 function changePassword(){
 
-const pass=document.getElementById('newPassword').value;
+const pass=
+document.getElementById('newPassword').value;
 
 localStorage.setItem('adminPassword',pass);
 
@@ -200,4 +210,4 @@ alert('Password berhasil diubah');
 </script>
 
 </body>
-  </html>
+</html>
