@@ -4,7 +4,88 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ADMIN IPUNGG SHOP</title>
-<link rel="stylesheet" href="style.css">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#090014;
+color:white;
+padding:20px;
+}
+
+.title{
+font-size:28px;
+font-weight:bold;
+margin-bottom:20px;
+text-align:center;
+}
+
+.box{
+background:#150025;
+border:1px solid #8b5cf6;
+padding:20px;
+border-radius:24px;
+margin-bottom:20px;
+box-shadow:0 0 20px rgba(168,85,247,.5);
+}
+
+.box h2{
+margin-bottom:15px;
+font-size:20px;
+}
+
+.box input,
+.box select{
+width:100%;
+padding:14px;
+margin-bottom:12px;
+border:none;
+border-radius:14px;
+background:#25003d;
+color:white;
+font-size:15px;
+}
+
+.btn{
+width:100%;
+padding:14px;
+border:none;
+border-radius:14px;
+background:#7c3aed;
+color:white;
+font-weight:bold;
+cursor:pointer;
+font-size:15px;
+}
+
+.btn:hover{
+opacity:.9;
+}
+
+.preview{
+width:100%;
+height:180px;
+object-fit:cover;
+border-radius:20px;
+margin-top:10px;
+border:1px solid #8b5cf6;
+}
+
+.note{
+margin-top:10px;
+opacity:.7;
+font-size:13px;
+}
+
+</style>
+
 </head>
 <body>
 
@@ -14,7 +95,7 @@ ADMIN IPUNGG SHOP
 
 <div class="box">
 
-<h2>Settings Nama Store</h2>
+<h2>SETTINGS NAMA STORE</h2>
 
 <input 
 type="text" 
@@ -30,7 +111,7 @@ SIMPAN NAMA STORE
 
 <div class="box">
 
-<h2>Settings Banner</h2>
+<h2>SETTINGS BANNER</h2>
 
 <input 
 type="text" 
@@ -52,7 +133,7 @@ src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200"
 
 <div class="box">
 
-<h2>Tambah Produk</h2>
+<h2>TAMBAH PRODUK</h2>
 
 <input 
 type="text" 
@@ -96,11 +177,15 @@ TAMBAH KATEGORI
 TAMBAH PRODUK
 </button>
 
+<div class="note">
+Produk tersimpan otomatis ke LocalStorage
+</div>
+
 </div>
 
 <div class="box">
 
-<h2>Ubah Password Admin</h2>
+<h2>UBAH PASSWORD ADMIN</h2>
 
 <input 
 type="password" 
@@ -115,6 +200,17 @@ UBAH PASSWORD
 </div>
 
 <script>
+
+if(!localStorage.getItem('adminPassword')){
+localStorage.setItem('adminPassword','1');
+}
+
+const pass=prompt('Masukkan Password Admin');
+
+if(pass!==localStorage.getItem('adminPassword')){
+alert('Password Salah');
+window.location.href='index.html';
+}
 
 function saveStoreName(){
 
@@ -153,7 +249,9 @@ document.getElementById('productCategory');
 const option=document.createElement('option');
 
 option.value=newCategory.toLowerCase();
-option.textContent=newCategory.toUpperCase();
+
+option.textContent=
+newCategory.toUpperCase();
 
 select.appendChild(option);
 
