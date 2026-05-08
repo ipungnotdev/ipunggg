@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADMIN IPUNGG SHOP</title>
+<link rel="stylesheet" href="css.style">
+</head>
+<body>
+
+<div class="title">
+ADMIN IPUNGG SHOP
+</div>
+
+<div class="box">
+
+<h2>Settings Nama Store</h2>
+
+<input 
+type="text" 
+id="storeName" 
+placeholder="Masukkan Nama Store"
+>
+
+<button class="btn" onclick="saveStoreName()">
+SIMPAN NAMA STORE
+</button>
+
+</div>
+
+<div class="box">
+
+<h2>Settings Banner</h2>
+
+<input 
+type="text" 
+id="bannerUrl" 
+placeholder="Masukkan URL Banner"
+>
+
+<button class="btn" onclick="saveBanner()">
+SIMPAN BANNER
+</button>
+
+<img 
+id="bannerPreview"
+class="preview"
+src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200"
+>
+
+</div>
+
+<div class="box">
+
+<h2>Tambah Produk</h2>
+
+<input 
+type="text" 
+id="productName" 
+placeholder="Nama Produk"
+>
+
+<input 
+type="text" 
+id="productPrice" 
+placeholder="Harga Produk"
+>
+
+<input 
+type="text" 
+id="productImage" 
+placeholder="URL Thumbnail"
+>
+
+<select id="productCategory">
+
+<option value="bot">SEWA BOT</option>
+<option value="panel">PANEL</option>
+<option value="script">SOURCE CODE</option>
+
+</select>
+
+<input 
+type="text" 
+id="newCategory"
+placeholder="Tambah Kategori Baru"
+>
+
+<button class="btn" onclick="addCategory()">
+TAMBAH KATEGORI
+</button>
+
+<br><br>
+
+<button class="btn" onclick="addProduct()">
+TAMBAH PRODUK
+</button>
+
+</div>
+
+<div class="box">
+
+<h2>Ubah Password Admin</h2>
+
+<input 
+type="password" 
+id="newPassword" 
+placeholder="Password Baru"
+>
+
+<button class="btn" onclick="changePassword()">
+UBAH PASSWORD
+</button>
+
+</div>
+
+<script>
+
+function saveStoreName(){
+
+const name=document.getElementById('storeName').value;
+
+localStorage.setItem('storeName',name);
+
+alert('Nama store berhasil disimpan');
+
+}
+
+function saveBanner(){
+
+const url=document.getElementById('bannerUrl').value;
+
+localStorage.setItem('banner',url);
+
+document.getElementById('bannerPreview').src=url;
+
+alert('Banner berhasil disimpan');
+
+}
+
+function addCategory(){
+
+const newCategory=
+document.getElementById('newCategory').value;
+
+if(!newCategory) return;
+
+const select=
+document.getElementById('productCategory');
+
+const option=document.createElement('option');
+
+option.value=newCategory.toLowerCase();
+option.textContent=newCategory.toUpperCase();
+
+select.appendChild(option);
+
+alert('Kategori berhasil ditambahkan');
+
+}
+
+function addProduct(){
+
+const name=document.getElementById('productName').value;
+const price=document.getElementById('productPrice').value;
+const image=document.getElementById('productImage').value;
+const category=document.getElementById('productCategory').value;
+
+const product={
+name,
+price,
+image,
+category
+};
+
+let products=
+JSON.parse(localStorage.getItem('products')) || [];
+
+products.push(product);
+
+localStorage.setItem(
+'products',
+JSON.stringify(products)
+);
+
+alert('Produk berhasil ditambahkan');
+
+}
+
+function changePassword(){
+
+const pass=document.getElementById('newPassword').value;
+
+localStorage.setItem('adminPassword',pass);
+
+alert('Password berhasil diubah');
+
+}
+
+</script>
+
+</body>
+  </html>
