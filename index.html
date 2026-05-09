@@ -246,7 +246,6 @@ font-size:12px;
 
 <img
 class="logo-img"
-id="logoImage"
 src="https://cdn-icons-png.flaticon.com/512/5968/5968756.png"
 >
 
@@ -260,25 +259,81 @@ IPUNGG SHOP
 
 <div class="menu" id="menu">
 
-<a id="waLink" href="#">📞 WhatsApp Admin</a>
-<a id="chLink" href="#">📢 Saluran Admin</a>
-<a id="grLink" href="#">👥 Grup Bot</a>
-<a href="admin.html">⚙️ Dashboard Admin</a>
+<a href="https://wa.me/6285198959920">
+📞 WhatsApp Admin
+</a>
+
+<a href="#">
+📢 Saluran Admin
+</a>
+
+<a href="#">
+👥 Grup Bot
+</a>
+
+<a href="admin.html">
+⚙️ Dashboard Admin
+</a>
 
 </div>
 
 </nav>
 
+<!-- BANNER -->
 <div class="banner">
 <img
-id="bannerImage"
 src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200"
 >
 </div>
 
-<div class="category" id="categoryBox"></div>
+<!-- CATEGORY -->
+<div class="category">
 
-<div class="products" id="products"></div>
+<button onclick="filterProducts('all')">
+SEMUA
+</button>
+
+<button onclick="filterProducts('panel')">
+PANEL
+</button>
+
+<button onclick="filterProducts('bot')">
+BOT
+</button>
+
+<button onclick="filterProducts('script')">
+SCRIPT
+</button>
+
+</div>
+
+<!-- PRODUCTS -->
+<div class="products" id="products">
+
+<div class="card item panel">
+
+<img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1200">
+
+<div class="card-content">
+
+<h3>Panel Pterodactyl</h3>
+
+<div class="price">
+Rp 5.000
+</div>
+
+<button
+class="btn"
+onclick="buyProduct('Panel Pterodactyl')"
+>
+ORDER
+</button>
+
+</div>
+
+</div>
+
+</div>
 
 <!-- OVERLAY -->
 <div class="overlay" id="overlay">
@@ -311,7 +366,6 @@ QRIS PAYMENT
 
 <img
 class="qris"
-id="qrisImage"
 src="https://img2.pixhost.to/images/7739/723666370_elaina-1778206415636.jpg"
 >
 
@@ -340,22 +394,12 @@ KIRIM KE ADMIN
 
 </div>
 
+<!-- CREDITS -->
 <div class="credits">
 © Mezuki X Ipungg - 2026
 </div>
 
 <script>
-
-if(!localStorage.getItem("products")){
-localStorage.setItem("products","[]");
-}
-
-if(!localStorage.getItem("categories")){
-localStorage.setItem(
-"categories",
-JSON.stringify(["panel","bot","script"])
-);
-}
 
 let proofURL="";
 
@@ -382,113 +426,6 @@ menu.style.display=
 menu.style.display==="block"
 ?"none"
 :"block";
-
-}
-
-/* SETTINGS */
-function loadSettings(){
-
-let banner=localStorage.getItem("banner");
-if(banner){
-document.getElementById("bannerImage").src=banner;
-}
-
-let logo=localStorage.getItem("logo");
-if(logo){
-document.getElementById("logoImage").src=logo;
-}
-
-let qris=localStorage.getItem("qris");
-if(qris){
-document.getElementById("qrisImage").src=qris;
-}
-
-let wa=localStorage.getItem("wa");
-if(wa){
-document.getElementById("waLink").href=
-"https://wa.me/"+wa;
-}
-
-let ch=localStorage.getItem("channel");
-if(ch){
-document.getElementById("chLink").href=ch;
-}
-
-let gr=localStorage.getItem("group");
-if(gr){
-document.getElementById("grLink").href=gr;
-}
-
-}
-
-/* CATEGORY */
-function loadCategories(){
-
-let data=
-JSON.parse(localStorage.getItem("categories")) || [];
-
-let box=
-document.getElementById("categoryBox");
-
-box.innerHTML=`
-<button onclick="filterProducts('all')">
-SEMUA
-</button>
-`;
-
-data.forEach(cat=>{
-
-box.innerHTML+=`
-<button onclick="filterProducts('${cat}')">
-${cat.toUpperCase()}
-</button>
-`;
-
-});
-
-}
-
-/* PRODUCTS */
-function loadProducts(){
-
-let data=
-JSON.parse(localStorage.getItem("products")) || [];
-
-let box=
-document.getElementById("products");
-
-box.innerHTML="";
-
-data.forEach(p=>{
-
-box.innerHTML+=`
-
-<div class="card item ${p.category}">
-
-<img src="${p.image}">
-
-<div class="card-content">
-
-<h3>${p.name}</h3>
-
-<div class="price">
-${p.price}
-</div>
-
-<button
-class="btn"
-onclick="buyProduct('${p.name}')"
->
-ORDER
-</button>
-
-</div>
-
-</div>
-
-`;
-
-});
 
 }
 
@@ -544,7 +481,7 @@ document.getElementById("qrisStep").style.display="block";
 
 }
 
-/* UPLOAD POSH */
+/* IMGBB UPLOAD */
 document.getElementById("proof")
 .addEventListener("change", async function(e){
 
@@ -552,19 +489,15 @@ let file = e.target.files[0];
 if(!file) return;
 
 let formData = new FormData();
-formData.append("file", file);
+
+formData.append("image", file);
 
 try{
 
 let res = await fetch(
-"https://app.upload-posh.com/api/upload",
+"https://api.imgbb.com/1/upload?key=056a71582440fe6b784d01f9a15eddcb",
 {
 method:"POST",
-
-headers:{
-"Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhZWZ1bGdnODRAZ21haWwuY29tIiwiZXhwIjo0OTMxODg5MDU5LCJqdGkiOiJmMmZlMTNlNi0zYjJkLTQ2NjYtYTI4ZS00MGFkMjQ5OTc5NTQifQ.HwgCodr_UrbZ1-P1Koy59zU_K3KI6Uyx5GWQ30gDb_M"
-},
-
 body:formData
 }
 );
@@ -573,23 +506,24 @@ let data = await res.json();
 
 console.log(data);
 
-proofURL =
-data.url ||
-data.file ||
-data.secure_url ||
-data.data?.url ||
-"";
+/* URL IMAGE */
+proofURL = data.data.url;
 
 if(proofURL){
+
 alert("Upload berhasil!");
+
 }else{
-alert("URL upload tidak ditemukan!");
+
+alert("Upload gagal!");
+
 }
 
 }catch(err){
 
 console.log(err);
-alert("Upload gagal!");
+
+alert("Upload error!");
 
 }
 
@@ -607,12 +541,8 @@ document.getElementById("product").value;
 let date=
 document.getElementById("date").value;
 
-let wa=
-localStorage.getItem("wa")
-|| "6285198959920";
-
 let text=
-`🧾 ORDER
+`🧾 FORMAT ORDER
 
 Nama : ${nama}
 ${product}
@@ -622,17 +552,12 @@ ${date}
 ${proofURL || "Belum upload"}`;
 
 window.open(
-"https://wa.me/"+wa+
-"?text="+encodeURIComponent(text),
+"https://wa.me/6285198959920?text="+
+encodeURIComponent(text),
 "_blank"
 );
 
 }
-
-/* INIT */
-loadSettings();
-loadCategories();
-loadProducts();
 
 </script>
 
