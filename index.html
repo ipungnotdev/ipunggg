@@ -240,7 +240,6 @@ font-size:12px;
 
 <body>
 
-<!-- NAV -->
 <nav>
 
 <div class="nav-left">
@@ -270,7 +269,6 @@ IPUNGG SHOP
 
 </nav>
 
-<!-- BANNER -->
 <div class="banner">
 <img
 id="bannerImage"
@@ -278,10 +276,8 @@ src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200"
 >
 </div>
 
-<!-- CATEGORY -->
 <div class="category" id="categoryBox"></div>
 
-<!-- PRODUCTS -->
 <div class="products" id="products"></div>
 
 <!-- OVERLAY -->
@@ -344,14 +340,12 @@ KIRIM KE ADMIN
 
 </div>
 
-<!-- CREDITS -->
 <div class="credits">
 © Mezuki X Ipungg - 2026
 </div>
 
 <script>
 
-/* DEFAULT */
 if(!localStorage.getItem("products")){
 localStorage.setItem("products","[]");
 }
@@ -363,14 +357,6 @@ JSON.stringify(["panel","bot","script"])
 );
 }
 
-if(!localStorage.getItem("qris")){
-localStorage.setItem(
-"qris",
-"https://img2.pixhost.to/images/7739/723666370_elaina-1778206415636.jpg"
-);
-}
-
-/* PROOF URL */
 let proofURL="";
 
 /* BACK BUTTON FIX */
@@ -558,37 +544,54 @@ document.getElementById("qrisStep").style.display="block";
 
 }
 
-/* CLOUDINARY UPLOAD */
+/* UPLOAD POSH */
 document.getElementById("proof")
 .addEventListener("change", async function(e){
 
-let file=e.target.files[0];
+let file = e.target.files[0];
+if(!file) return;
 
-if(!file)return;
+let formData = new FormData();
+formData.append("file", file);
 
-let formData=new FormData();
+try{
 
-formData.append("file",file);
-
-/* PRESET */
-formData.append(
-"upload_preset",
-"ipungg"
-);
-
-/* API */
-let res=await fetch(
-"https://api.cloudinary.com/v1_1/ipungg/image/upload",
+let res = await fetch(
+"https://app.upload-posh.com/api/upload",
 {
 method:"POST",
+
+headers:{
+"Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhZWZ1bGdnODRAZ21haWwuY29tIiwiZXhwIjo0OTMxODg5MDU5LCJqdGkiOiJmMmZlMTNlNi0zYjJkLTQ2NjYtYTI4ZS00MGFkMjQ5OTc5NTQifQ.HwgCodr_UrbZ1-P1Koy59zU_K3KI6Uyx5GWQ30gDb_M"
+},
+
 body:formData
 }
 );
 
-let data=await res.json();
+let data = await res.json();
 
-/* URL */
-proofURL=data.secure_url;
+console.log(data);
+
+proofURL =
+data.url ||
+data.file ||
+data.secure_url ||
+data.data?.url ||
+"";
+
+if(proofURL){
+alert("Upload berhasil!");
+}else{
+alert("URL upload tidak ditemukan!");
+}
+
+}catch(err){
+
+console.log(err);
+alert("Upload gagal!");
+
+}
 
 });
 
