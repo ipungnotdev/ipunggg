@@ -481,8 +481,11 @@ SEMUA
 
 data.forEach(cat=>{
 
+let category =
+cat.toLowerCase().trim();
+
 box.innerHTML += `
-<button onclick="filterProducts('${cat}')">
+<button onclick="filterProducts('${category}')">
 ${cat.toUpperCase()}
 </button>
 `;
@@ -504,9 +507,14 @@ box.innerHTML="";
 
 data.forEach((p,index)=>{
 
+let category =
+(p.category || "")
+.toLowerCase()
+.trim();
+
 box.innerHTML += `
 
-<div class="card item ${p.category}">
+<div class="card item ${category}">
 
 <img src="${p.image}">
 
@@ -537,6 +545,9 @@ ORDER
 
 /* FILTER */
 function filterProducts(category){
+
+category =
+category.toLowerCase().trim();
 
 let items =
 document.querySelectorAll(".item");
