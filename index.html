@@ -31,18 +31,11 @@ top:0;
 z-index:999;
 }
 
-.nav-left{
-display:flex;
-align-items:center;
-gap:10px;
-}
-
 .logo-img{
 width:38px;
 height:38px;
 border-radius:50%;
 object-fit:cover;
-box-shadow:0 0 10px #8b5cf6;
 }
 
 .logo{
@@ -73,11 +66,7 @@ display:block;
 padding:14px;
 color:white;
 text-decoration:none;
-border-bottom:1px solid rgba(255,255,255,.08);
-}
-
-.menu a:hover{
-background:#24003d;
+border-bottom:1px solid rgba(255,255,255,.1);
 }
 
 /* BANNER */
@@ -85,6 +74,25 @@ background:#24003d;
 width:100%;
 height:220px;
 object-fit:cover;
+}
+
+/* CATEGORY */
+.category{
+display:flex;
+gap:10px;
+padding:12px;
+overflow-x:auto;
+}
+
+.category button{
+padding:10px 14px;
+border:none;
+border-radius:12px;
+background:#7c3aed;
+color:white;
+font-weight:bold;
+white-space:nowrap;
+cursor:pointer;
 }
 
 /* PRODUCTS */
@@ -97,7 +105,7 @@ padding:14px;
 
 .card{
 background:#160025;
-border-radius:20px;
+border-radius:18px;
 overflow:hidden;
 border:1px solid #8b5cf6;
 }
@@ -116,91 +124,11 @@ padding:10px;
 width:100%;
 padding:10px;
 border:none;
-border-radius:12px;
-background:#7c3aed;
-color:white;
-font-weight:bold;
-cursor:pointer;
-}
-
-/* OVERLAY */
-.overlay{
-display:none;
-position:fixed;
-inset:0;
-background:#090014;
-z-index:99999;
-padding:20px;
-}
-
-.step{
-max-width:420px;
-margin:auto;
-margin-top:40px;
-}
-
-.step input{
-width:100%;
-padding:12px;
-margin-bottom:10px;
-border:none;
 border-radius:10px;
-background:#25003d;
-color:white;
-}
-
-/* QRIS */
-.qris{
-width:100%;
-max-width:260px;
-display:block;
-margin:15px auto;
-border-radius:18px;
-box-shadow:0 0 25px rgba(139,92,246,.6);
-}
-
-/* UPLOAD */
-.upload-box{
-display:flex;
-align-items:center;
-justify-content:center;
-height:110px;
-border:2px dashed #8b5cf6;
-border-radius:18px;
-margin-top:12px;
-cursor:pointer;
-background:#220033;
-flex-direction:column;
-gap:8px;
-}
-
-.upload-icon{
-font-size:35px;
-}
-
-.btn-full{
-width:100%;
-padding:12px;
-margin-top:12px;
-border:none;
-border-radius:12px;
 background:#7c3aed;
 color:white;
 font-weight:bold;
 cursor:pointer;
-}
-
-/* CREDITS */
-.credits{
-position:fixed;
-bottom:10px;
-left:50%;
-transform:translateX(-50%);
-padding:8px 14px;
-background:rgba(124,58,237,.15);
-border:1px solid #8b5cf6;
-border-radius:50px;
-font-size:12px;
 }
 
 </style>
@@ -212,22 +140,19 @@ font-size:12px;
 <!-- NAV -->
 <nav>
 
-<div class="nav-left">
-
+<div style="display:flex;align-items:center;gap:10px;">
 <img class="logo-img">
-
 <div class="logo">IPUNGG SHOP</div>
-
 </div>
 
 <div class="hamburger" onclick="toggleMenu()">☰</div>
 
 <div class="menu" id="menu">
 
-<a id="waLink">📞 WhatsApp Admin</a>
+<a href="admin.html">⚙️ Admin</a>
+<a id="waLink">📞 WA</a>
 <a id="chLink">📢 Channel</a>
 <a id="grLink">👥 Group</a>
-<a href="admin.html">⚙️ Admin</a>
 
 </div>
 
@@ -238,66 +163,21 @@ font-size:12px;
 <img id="bannerImage">
 </div>
 
+<!-- CATEGORY (AUTO) -->
+<div class="category" id="categoryBox"></div>
+
 <!-- PRODUCTS -->
 <div class="products" id="products"></div>
 
-<!-- ORDER -->
-<div class="overlay" id="overlay">
-
-<div class="step">
-
-<div id="formStep">
-
-<h2>FORM ORDER</h2>
-
-<input type="text" id="nama" placeholder="Nama">
-<input type="text" id="product" readonly>
-<input type="text" id="date" readonly>
-
-<button class="btn-full" onclick="goQRIS()">
-BAYAR SEKARANG
-</button>
-
-</div>
-
-<div id="qrisStep" style="display:none;text-align:center;">
-
-<h2>QRIS PAYMENT</h2>
-
-<img class="qris">
-
-<label for="proof" class="upload-box">
-<div class="upload-icon">📷</div>
-<p>Upload Bukti</p>
-</label>
-
-<input type="file" id="proof" style="display:none;">
-
-<button class="btn-full" onclick="sendWA()">
-KIRIM KE ADMIN
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- CREDITS -->
-<div class="credits">
-© Mezuki X Ipungg - 2026
-</div>
-
 <script>
 
-let proofURL="";
+/* INIT DEFAULT */
+if(!localStorage.getItem("products")){
+localStorage.setItem("products","[]");
+}
 
-/* DEFAULT QRIS FIX */
-if(!localStorage.getItem("qris")){
-localStorage.setItem(
-"qris",
-"https://img2.pixhost.to/images/7739/723666370_elaina-1778206415636.jpg"
-);
+if(!localStorage.getItem("categories")){
+localStorage.setItem("categories",JSON.stringify(["panel","bot","script"]));
 }
 
 /* MENU */
@@ -310,129 +190,91 @@ m.style.display = m.style.display==="block"?"none":"block";
 function loadSettings(){
 
 let logo=localStorage.getItem("logo");
-if(logo){
-document.querySelector(".logo-img").src=logo;
-}
+if(logo) document.querySelector(".logo-img").src=logo;
 
 let banner=localStorage.getItem("banner");
-if(banner){
-document.getElementById("bannerImage").src=banner;
-}
-
-let qris=localStorage.getItem("qris");
-document.querySelector(".qris").src=qris;
+if(banner) document.getElementById("bannerImage").src=banner;
 
 let wa=localStorage.getItem("wa");
-if(wa){
-document.getElementById("waLink").href="https://wa.me/"+wa;
-}
+if(wa) document.getElementById("waLink").href="https://wa.me/"+wa;
 
 let ch=localStorage.getItem("channel");
-if(ch){
-document.getElementById("chLink").href=ch;
-}
+if(ch) document.getElementById("chLink").href=ch;
 
 let gr=localStorage.getItem("group");
-if(gr){
-document.getElementById("grLink").href=gr;
-}
+if(gr) document.getElementById("grLink").href=gr;
 
 }
 
-/* PRODUCTS */
+/* LOAD CATEGORY FIX */
+function loadCategories(){
+
+let data=JSON.parse(localStorage.getItem("categories")) || [];
+
+let box=document.getElementById("categoryBox");
+
+box.innerHTML="";
+
+/* default ALL */
+box.innerHTML+=`<button onclick="filter('all')">SEMUA</button>`;
+
+data.forEach(c=>{
+box.innerHTML+=`
+<button onclick="filter('${c}')">${c.toUpperCase()}</button>
+`;
+});
+
+}
+
+/* LOAD PRODUCTS */
 function loadProducts(){
 
-let data=JSON.parse(localStorage.getItem("products"))||[];
+let data=JSON.parse(localStorage.getItem("products")) || [];
 
 let box=document.getElementById("products");
+
 box.innerHTML="";
 
 data.forEach(p=>{
-
 box.innerHTML+=`
-<div class="card">
+<div class="card ${p.category}">
 <img src="${p.image}">
 <div class="card-content">
 <h3>${p.name}</h3>
 <p>${p.price}</p>
-<button class="btn" onclick="buy('${p.name}')">ORDER</button>
+<button class="btn">ORDER</button>
 </div>
 </div>
 `;
-
 });
 
 }
 
-/* BUY */
-function buy(name){
+/* FILTER CATEGORY */
+function filter(cat){
 
-document.getElementById("overlay").style.display="block";
+let items=document.querySelectorAll(".card");
 
-document.getElementById("formStep").style.display="block";
-document.getElementById("qrisStep").style.display="none";
+items.forEach(i=>{
 
-document.getElementById("product").value="Produk: "+name;
-document.getElementById("date").value="Tanggal: "+new Date().toLocaleDateString("id-ID");
-
-history.pushState({page:"order"},"","");
-
-}
-
-/* BACK FIX */
-window.addEventListener("popstate",function(){
-
-if(document.getElementById("overlay").style.display==="block"){
-document.getElementById("overlay").style.display="none";
-history.pushState(null,"","");
+if(cat==="all"){
+i.style.display="block";
+}else{
+i.classList.contains(cat)
+? i.style.display="block"
+: i.style.display="none";
 }
 
 });
-
-/* NEXT */
-function goQRIS(){
-document.getElementById("formStep").style.display="none";
-document.getElementById("qrisStep").style.display="block";
-}
-
-/* UPLOAD */
-document.getElementById("proof").addEventListener("change",e=>{
-let file=e.target.files[0];
-let reader=new FileReader();
-reader.onload=()=>proofURL=reader.result;
-reader.readAsDataURL(file);
-});
-
-/* SEND WA */
-function sendWA(){
-
-let nama=document.getElementById("nama").value;
-let product=document.getElementById("product").value;
-let date=document.getElementById("date").value;
-
-let wa=localStorage.getItem("wa")||"6285198959920";
-
-let text=`🧾 ORDER
-
-Nama: ${nama}
-${product}
-${date}
-
-Bukti:
-${proofURL||"Tidak ada"}`;
-
-window.open(
-`https://wa.me/${wa}?text=${encodeURIComponent(text)}`,
-"_blank"
-);
 
 }
 
 /* INIT */
 loadSettings();
+loadCategories();
 loadProducts();
 
 </script>
 
 </body>
-  </html>
+</html>
