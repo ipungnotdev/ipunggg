@@ -21,6 +21,18 @@ border:1px solid #8b5cf6;
 padding:18px;
 border-radius:18px;
 margin-bottom:15px;
+animation:fade .3s ease;
+}
+
+@keyframes fade{
+from{
+opacity:0;
+transform:translateY(10px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
 }
 
 input,select{
@@ -31,6 +43,7 @@ border:none;
 border-radius:10px;
 background:#25003d;
 color:white;
+outline:none;
 }
 
 .btn{
@@ -43,6 +56,15 @@ color:white;
 font-weight:bold;
 cursor:pointer;
 margin-top:8px;
+transition:.2s;
+}
+
+.btn:hover{
+background:#8b5cf6;
+}
+
+.btn:active{
+transform:scale(.96);
 }
 
 .list{
@@ -55,7 +77,8 @@ padding:10px;
 .item{
 display:flex;
 justify-content:space-between;
-padding:8px;
+align-items:center;
+padding:10px;
 border-bottom:1px solid rgba(255,255,255,.1);
 }
 
@@ -63,12 +86,23 @@ border-bottom:1px solid rgba(255,255,255,.1);
 background:red;
 border:none;
 color:white;
-padding:5px 10px;
+padding:6px 10px;
 border-radius:8px;
 cursor:pointer;
 }
 
-.hidden{display:none;}
+.hidden{
+display:none;
+}
+
+label{
+display:block;
+margin-top:10px;
+}
+
+small{
+opacity:.7;
+}
 
 </style>
 
@@ -82,7 +116,10 @@ cursor:pointer;
 <h2>🔐 LOGIN ADMIN</h2>
 
 <input type="password" id="pass" placeholder="Password">
-<button class="btn" onclick="login()">LOGIN</button>
+
+<button class="btn" onclick="login()">
+LOGIN
+</button>
 
 </div>
 
@@ -93,44 +130,80 @@ cursor:pointer;
 
 <!-- LOGO -->
 <div class="box">
+
 <h3>🖼 Logo</h3>
+
 <input id="logo" placeholder="URL Logo">
-<button class="btn" onclick="saveLogo()">SIMPAN</button>
+
+<button class="btn" onclick="saveLogo()">
+SIMPAN
+</button>
+
 </div>
 
 <!-- BANNER -->
 <div class="box">
+
 <h3>🖼 Banner</h3>
+
 <input id="banner" placeholder="URL Banner">
-<button class="btn" onclick="saveBanner()">SIMPAN</button>
+
+<button class="btn" onclick="saveBanner()">
+SIMPAN
+</button>
+
 </div>
 
 <!-- QRIS -->
 <div class="box">
+
 <h3>💳 QRIS</h3>
+
 <input id="qris" placeholder="URL QRIS">
-<button class="btn" onclick="saveQRIS()">SIMPAN</button>
+
+<button class="btn" onclick="saveQRIS()">
+SIMPAN
+</button>
+
 </div>
 
 <!-- WA -->
 <div class="box">
+
 <h3>📞 WhatsApp Admin</h3>
+
 <input id="wa" placeholder="628xxxx">
-<button class="btn" onclick="saveWA()">SIMPAN</button>
+
+<button class="btn" onclick="saveWA()">
+SIMPAN
+</button>
+
 </div>
 
 <!-- CHANNEL -->
 <div class="box">
+
 <h3>📢 Channel</h3>
-<input id="channel" placeholder="link channel">
-<button class="btn" onclick="saveChannel()">SIMPAN</button>
+
+<input id="channel" placeholder="Link Channel">
+
+<button class="btn" onclick="saveChannel()">
+SIMPAN
+</button>
+
 </div>
 
 <!-- GROUP -->
 <div class="box">
+
 <h3>👥 Group</h3>
-<input id="group" placeholder="link group">
-<button class="btn" onclick="saveGroup()">SIMPAN</button>
+
+<input id="group" placeholder="Link Group">
+
+<button class="btn" onclick="saveGroup()">
+SIMPAN
+</button>
+
 </div>
 
 <!-- CATEGORY -->
@@ -139,7 +212,10 @@ cursor:pointer;
 <h3>📁 Kategori</h3>
 
 <input id="cat" placeholder="Tambah kategori">
-<button class="btn" onclick="addCat()">TAMBAH</button>
+
+<button class="btn" onclick="addCat()">
+TAMBAH
+</button>
 
 <div class="list" id="catList"></div>
 
@@ -150,13 +226,35 @@ cursor:pointer;
 
 <h3>🛒 Produk</h3>
 
-<input id="pname" placeholder="Nama">
-<input id="pprice" placeholder="Harga">
-<input id="pimg" placeholder="Gambar URL">
+<input id="pname" placeholder="Nama Produk">
+
+<input id="pprice" placeholder="Harga Produk">
+
+<input id="pimg" placeholder="URL Gambar">
 
 <select id="pcat"></select>
 
-<button class="btn" onclick="addProduct()">TAMBAH PRODUK</button>
+<!-- FEATURED -->
+<label>
+
+<input type="checkbox" id="featured">
+
+Tampilkan di SEMUA
+
+</label>
+
+<!-- PIN -->
+<label>
+
+<input type="checkbox" id="pin">
+
+Pin Produk
+
+</label>
+
+<button class="btn" onclick="addProduct()">
+TAMBAH PRODUK
+</button>
 
 <div class="list" id="productList"></div>
 
@@ -166,8 +264,12 @@ cursor:pointer;
 <div class="box">
 
 <h3>🔑 Ganti Password</h3>
+
 <input type="password" id="newpass">
-<button class="btn" onclick="changePass()">UBAH PASSWORD</button>
+
+<button class="btn" onclick="changePass()">
+UBAH PASSWORD
+</button>
 
 </div>
 
@@ -185,144 +287,330 @@ localStorage.setItem("products","[]");
 }
 
 if(!localStorage.getItem("categories")){
-localStorage.setItem("categories",JSON.stringify(["panel","bot","script"]));
+localStorage.setItem(
+"categories",
+JSON.stringify([])
+);
 }
 
 /* LOGIN */
 function login(){
 
-let p=document.getElementById("pass").value;
+let p =
+document.getElementById("pass").value;
 
-if(p===localStorage.getItem("adminPass")){
-document.getElementById("login").style.display="none";
-document.getElementById("dash").classList.remove("hidden");
+if(
+p===localStorage.getItem("adminPass")
+){
+
+document.getElementById("login")
+.style.display="none";
+
+document.getElementById("dash")
+.classList.remove("hidden");
+
 loadAll();
+
 }else{
+
 alert("Password salah");
-}
 
 }
 
-/* SAVE SETTINGS */
+}
+
+/* SETTINGS */
 function saveLogo(){
-localStorage.setItem("logo",document.getElementById("logo").value);
+
+localStorage.setItem(
+"logo",
+document.getElementById("logo").value
+);
+
 alert("Logo tersimpan");
+
 }
 
 function saveBanner(){
-localStorage.setItem("banner",document.getElementById("banner").value);
+
+localStorage.setItem(
+"banner",
+document.getElementById("banner").value
+);
+
 alert("Banner tersimpan");
+
 }
 
 function saveQRIS(){
-localStorage.setItem("qris",document.getElementById("qris").value);
+
+localStorage.setItem(
+"qris",
+document.getElementById("qris").value
+);
+
 alert("QRIS tersimpan");
+
 }
 
 function saveWA(){
-localStorage.setItem("wa",document.getElementById("wa").value);
+
+localStorage.setItem(
+"wa",
+document.getElementById("wa").value
+);
+
 alert("WA tersimpan");
+
 }
 
 function saveChannel(){
-localStorage.setItem("channel",document.getElementById("channel").value);
+
+localStorage.setItem(
+"channel",
+document.getElementById("channel").value
+);
+
 alert("Channel tersimpan");
+
 }
 
 function saveGroup(){
-localStorage.setItem("group",document.getElementById("group").value);
+
+localStorage.setItem(
+"group",
+document.getElementById("group").value
+);
+
 alert("Group tersimpan");
+
 }
 
 /* CATEGORY */
 function addCat(){
-let c=document.getElementById("cat").value;
+
+let c =
+document.getElementById("cat")
+.value
+.toLowerCase()
+.trim();
+
 if(!c)return;
 
-let data=JSON.parse(localStorage.getItem("categories"));
-data.push(c.toLowerCase());
-localStorage.setItem("categories",JSON.stringify(data));
+let data =
+JSON.parse(
+localStorage.getItem("categories")
+);
+
+data.push(c);
+
+localStorage.setItem(
+"categories",
+JSON.stringify(data)
+);
+
+document.getElementById("cat").value="";
+
 loadAll();
+
 }
 
 function delCat(i){
-let data=JSON.parse(localStorage.getItem("categories"));
+
+let data =
+JSON.parse(
+localStorage.getItem("categories")
+);
+
 data.splice(i,1);
-localStorage.setItem("categories",JSON.stringify(data));
+
+localStorage.setItem(
+"categories",
+JSON.stringify(data)
+);
+
 loadAll();
+
 }
 
 /* PRODUCT */
 function addProduct(){
 
-let data=JSON.parse(localStorage.getItem("products"));
+let data =
+JSON.parse(
+localStorage.getItem("products")
+);
 
 data.push({
-name:document.getElementById("pname").value,
-price:document.getElementById("pprice").value,
-image:document.getElementById("pimg").value,
-category:document.getElementById("pcat").value
+
+name:
+document.getElementById("pname").value,
+
+price:
+document.getElementById("pprice").value,
+
+image:
+document.getElementById("pimg").value,
+
+category:
+document.getElementById("pcat").value,
+
+featured:
+document.getElementById("featured").checked,
+
+pin:
+document.getElementById("pin").checked
+
 });
 
-localStorage.setItem("products",JSON.stringify(data));
+localStorage.setItem(
+"products",
+JSON.stringify(data)
+);
+
+/* RESET */
+document.getElementById("pname").value="";
+document.getElementById("pprice").value="";
+document.getElementById("pimg").value="";
+document.getElementById("featured").checked=false;
+document.getElementById("pin").checked=false;
+
 loadAll();
 
 }
 
 function delProduct(i){
 
-let data=JSON.parse(localStorage.getItem("products"));
+let data =
+JSON.parse(
+localStorage.getItem("products")
+);
+
 data.splice(i,1);
-localStorage.setItem("products",JSON.stringify(data));
+
+localStorage.setItem(
+"products",
+JSON.stringify(data)
+);
+
 loadAll();
 
 }
 
-/* LOAD ALL */
+/* LOAD */
 function loadAll(){
 
 /* CATEGORY */
-let cat=JSON.parse(localStorage.getItem("categories"));
-let catList=document.getElementById("catList");
-let select=document.getElementById("pcat");
+let cat =
+JSON.parse(
+localStorage.getItem("categories")
+);
+
+let catList =
+document.getElementById("catList");
+
+let select =
+document.getElementById("pcat");
 
 catList.innerHTML="";
 select.innerHTML="";
 
 cat.forEach((c,i)=>{
 
-catList.innerHTML+=`
+catList.innerHTML += `
+
 <div class="item">
+
 ${c}
-<button class="del" onclick="delCat(${i})">X</button>
+
+<button
+class="del"
+onclick="delCat(${i})"
+>
+
+X
+
+</button>
+
 </div>
+
 `;
 
-select.innerHTML+=`<option value="${c}">${c}</option>`;
+select.innerHTML += `
+<option value="${c}">
+${c}
+</option>
+`;
 
 });
 
 /* PRODUCT */
-let prod=JSON.parse(localStorage.getItem("products"));
-let list=document.getElementById("productList");
+let prod =
+JSON.parse(
+localStorage.getItem("products")
+);
+
+let list =
+document.getElementById("productList");
 
 list.innerHTML="";
 
+/* SORT PIN */
+prod.sort((a,b)=>
+(b.pin===true)-(a.pin===true)
+);
+
 prod.forEach((p,i)=>{
-list.innerHTML+=`
+
+list.innerHTML += `
+
 <div class="item">
-${p.name} - ${p.price}
-<button class="del" onclick="delProduct(${i})">X</button>
+
+<div>
+
+${p.pin ? "⭐ " : ""}
+
+${p.name}
+
+<br>
+
+<small>
+
+${p.category}
+
+${p.featured ? " • SEMUA" : ""}
+
+</small>
+
 </div>
+
+<button
+class="del"
+onclick="delProduct(${i})"
+>
+
+X
+
+</button>
+
+</div>
+
 `;
+
 });
 
 }
 
 /* PASSWORD */
 function changePass(){
-localStorage.setItem("adminPass",document.getElementById("newpass").value);
+
+localStorage.setItem(
+"adminPass",
+document.getElementById("newpass").value
+);
+
 alert("Password diubah");
+
 }
 
 </script>
