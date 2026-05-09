@@ -340,7 +340,7 @@ src="https://img2.pixhost.to/images/7739/723666370_elaina-1778206415636.jpg"
 📷
 </div>
 
-<p>
+<p id="uploadText">
 Upload Bukti Pembayaran
 </p>
 
@@ -472,18 +472,21 @@ JSON.parse(localStorage.getItem("categories")) || [];
 let box =
 document.getElementById("categoryBox");
 
-/* DEFAULT */
 box.innerHTML = `
-
+<button onclick="filterProducts('all')">
+SEMUA
+</button>
 `;
 
 data.forEach(cat=>{
 
-let category =
-cat.toLowerCase().trim();
+let slug =
+cat.toLowerCase()
+.trim()
+.replace(/\s+/g,"-");
 
 box.innerHTML += `
-<button onclick="filterProducts('${category}')">
+<button onclick="filterProducts('${slug}')">
 ${cat.toUpperCase()}
 </button>
 `;
@@ -508,11 +511,15 @@ data.forEach((p,index)=>{
 let category =
 (p.category || "")
 .toLowerCase()
-.trim();
+.trim()
+.replace(/\s+/g,"-");
 
 box.innerHTML += `
 
-<div class="card item ${category}">
+<div 
+class="card item"
+data-category="${category}"
+>
 
 <img src="${p.image}">
 
@@ -545,7 +552,10 @@ ORDER
 function filterProducts(category){
 
 category =
-category.toLowerCase().trim();
+category
+.toLowerCase()
+.trim()
+.replace(/\s+/g,"-");
 
 let items =
 document.querySelectorAll(".item");
@@ -558,7 +568,9 @@ item.style.display="block";
 
 }
 
-else if(item.classList.contains(category)){
+else if(
+item.dataset.category===category
+){
 
 item.style.display="block";
 
@@ -603,13 +615,16 @@ document.getElementById("qrisStep").style.display="block";
 
 }
 
-/* IMGBB UPLOAD */
+/* FAST IMGBB UPLOAD */
 document.getElementById("proof")
 .addEventListener("change", async function(e){
 
 let file = e.target.files[0];
 
 if(!file) return;
+
+document.getElementById("uploadText")
+.innerText = "Uploading...";
 
 let formData = new FormData();
 
@@ -627,17 +642,18 @@ body:formData
 
 let data = await res.json();
 
-console.log(data);
-
-proofURL = data.data.url;
+proofURL =
+data?.data?.url || "";
 
 if(proofURL){
 
-alert("Upload berhasil!");
+document.getElementById("uploadText")
+.innerText = "Upload Success ✅";
 
 }else{
 
-alert("Upload gagal!");
+document.getElementById("uploadText")
+.innerText = "Upload Failed ❌";
 
 }
 
@@ -645,7 +661,8 @@ alert("Upload gagal!");
 
 console.log(err);
 
-alert("Upload error!");
+document.getElementById("uploadText")
+.innerText = "Upload Error ❌";
 
 }
 
@@ -668,7 +685,7 @@ localStorage.getItem("wa")
 || "6285198959920";
 
 let text =
-`🧾 FORMAT ORDER
+`🧾 ORDER
 
 Nama : ${nama}
 ${product}
