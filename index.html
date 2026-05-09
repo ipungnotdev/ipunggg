@@ -48,7 +48,6 @@ font-size:28px;
 cursor:pointer;
 }
 
-/* MENU */
 .menu{
 display:none;
 position:absolute;
@@ -169,7 +168,26 @@ border-radius:18px;
 box-shadow:0 0 25px rgba(139,92,246,.6);
 }
 
-/* BUTTON */
+/* UPLOAD */
+.upload-box{
+display:flex;
+align-items:center;
+justify-content:center;
+height:110px;
+border:2px dashed #8b5cf6;
+border-radius:18px;
+margin-top:12px;
+cursor:pointer;
+background:#220033;
+flex-direction:column;
+gap:8px;
+color:white;
+}
+
+.upload-icon{
+font-size:35px;
+}
+
 .btn-full{
 width:100%;
 padding:12px;
@@ -252,6 +270,13 @@ BAYAR SEKARANG
 
 <img class="qris">
 
+<label for="proof" class="upload-box">
+<div class="upload-icon">📷</div>
+<p>Upload Bukti Pembayaran</p>
+</label>
+
+<input type="file" id="proof" style="display:none;">
+
 <button class="btn-full" onclick="sendWA()">
 KIRIM KE ADMIN
 </button>
@@ -268,12 +293,14 @@ KIRIM KE ADMIN
 
 <script>
 
+let proofURL="";
+
 /* QRIS DEFAULT */
 if(!localStorage.getItem("qris")){
 localStorage.setItem("qris","https://img2.pixhost.to/images/7739/723666370_elaina-1778206415636.jpg");
 }
 
-/* BACK BUTTON FIX */
+/* BACK FIX */
 history.pushState(null,null,location.href);
 
 window.addEventListener("popstate",function(){
@@ -296,10 +323,10 @@ m.style.display=m.style.display==="block"?"none":"block";
 /* LOAD */
 function loadSettings(){
 
+document.querySelector(".qris").src=localStorage.getItem("qris");
+
 let banner=localStorage.getItem("banner");
 if(banner) document.getElementById("bannerImage").src=banner;
-
-document.querySelector(".qris").src=localStorage.getItem("qris");
 
 }
 
@@ -344,19 +371,17 @@ box.innerHTML+=`
 
 }
 
-/* FILTER FIX */
+/* FILTER */
 function filter(cat){
 
 let items=document.querySelectorAll(".card");
 
 items.forEach(i=>{
-
 if(cat==="all"){
 i.style.display="block";
 }else{
 i.style.display=i.classList.contains(cat)?"block":"none";
 }
-
 });
 
 }
@@ -382,7 +407,23 @@ document.getElementById("formStep").style.display="none";
 document.getElementById("qrisStep").style.display="block";
 }
 
-/* WA */
+/* UPLOAD FIX */
+document.getElementById("proof").addEventListener("change",function(e){
+
+let file=e.target.files[0];
+if(!file)return;
+
+let reader=new FileReader();
+
+reader.onload=function(){
+proofURL=reader.result;
+};
+
+reader.readAsDataURL(file);
+
+});
+
+/* WA SEND */
 function sendWA(){
 
 let nama=document.getElementById("nama").value;
@@ -395,7 +436,10 @@ let text=`🧾 ORDER
 
 Nama: ${nama}
 ${product}
-${date}`;
+${date}
+
+📎 Bukti:
+${proofURL||"Tidak diupload"}`;
 
 window.open("https://wa.me/"+wa+"?text="+encodeURIComponent(text),"_blank");
 
