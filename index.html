@@ -17,6 +17,7 @@ font-family:Arial,sans-serif;
 body{
 background:#090014;
 color:white;
+overflow-x:hidden;
 }
 
 /* NAVBAR */
@@ -53,6 +54,11 @@ font-weight:bold;
 .hamburger{
 font-size:28px;
 cursor:pointer;
+transition:.2s;
+}
+
+.hamburger:active{
+transform:scale(.9);
 }
 
 /* MENU */
@@ -68,6 +74,18 @@ border-radius:18px;
 overflow:hidden;
 box-shadow:0 0 20px rgba(139,92,246,.5);
 z-index:9999;
+animation:menuFade .25s ease;
+}
+
+@keyframes menuFade{
+from{
+opacity:0;
+transform:translateY(-10px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
 }
 
 .menu a{
@@ -76,6 +94,11 @@ padding:14px;
 color:white;
 text-decoration:none;
 border-bottom:1px solid rgba(255,255,255,.08);
+transition:.2s;
+}
+
+.menu a:hover{
+background:#24003d;
 }
 
 /* BANNER */
@@ -88,21 +111,49 @@ object-fit:cover;
 /* CATEGORY */
 .category{
 display:flex;
-gap:10px;
-padding:14px;
+gap:8px;
+padding:12px;
 overflow-x:auto;
+scroll-behavior:smooth;
+}
+
+.category::-webkit-scrollbar{
+display:none;
 }
 
 .category button{
-padding:14px 22px;
+padding:10px 16px;
 border:none;
-border-radius:14px;
+border-radius:12px;
 background:#7c3aed;
 color:white;
 font-weight:bold;
 cursor:pointer;
-font-size:15px;
-min-width:120px;
+font-size:13px;
+min-width:95px;
+transition:.25s;
+animation:fadeIn .4s ease;
+}
+
+.category button:hover{
+transform:scale(1.06);
+background:#8b5cf6;
+box-shadow:0 0 18px rgba(139,92,246,.5);
+}
+
+.category button:active{
+transform:scale(.94);
+}
+
+@keyframes fadeIn{
+from{
+opacity:0;
+transform:translateY(10px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
 }
 
 /* PRODUCTS */
@@ -118,6 +169,13 @@ background:#160025;
 border-radius:20px;
 overflow:hidden;
 border:1px solid #8b5cf6;
+animation:fadeIn .4s ease;
+transition:.25s;
+}
+
+.card:hover{
+transform:translateY(-4px);
+box-shadow:0 0 20px rgba(139,92,246,.35);
 }
 
 .card img{
@@ -144,6 +202,15 @@ background:#7c3aed;
 color:white;
 font-weight:bold;
 cursor:pointer;
+transition:.2s;
+}
+
+.btn:hover{
+background:#8b5cf6;
+}
+
+.btn:active{
+transform:scale(.95);
 }
 
 /* OVERLAY */
@@ -155,6 +222,7 @@ background:#090014;
 z-index:99999;
 overflow:auto;
 padding:20px;
+animation:fadeIn .2s ease;
 }
 
 .popup{
@@ -165,6 +233,7 @@ background:#150025;
 padding:22px;
 border-radius:24px;
 border:1px solid #8b5cf6;
+animation:fadeIn .25s ease;
 }
 
 .popup h2{
@@ -205,6 +274,11 @@ cursor:pointer;
 margin-top:15px;
 background:#220033;
 gap:8px;
+transition:.2s;
+}
+
+.upload-box:hover{
+transform:scale(1.02);
 }
 
 .upload-icon{
@@ -222,6 +296,15 @@ background:#7c3aed;
 color:white;
 font-weight:bold;
 cursor:pointer;
+transition:.2s;
+}
+
+.btn-full:hover{
+background:#8b5cf6;
+}
+
+.btn-full:active{
+transform:scale(.96);
 }
 
 /* CREDITS */
@@ -235,6 +318,7 @@ background:rgba(124,58,237,.15);
 border:1px solid #8b5cf6;
 border-radius:40px;
 font-size:12px;
+backdrop-filter:blur(6px);
 }
 
 </style>
@@ -242,7 +326,6 @@ font-size:12px;
 
 <body>
 
-<!-- NAVBAR -->
 <nav>
 
 <div class="nav-left">
@@ -363,7 +446,6 @@ KIRIM KE ADMIN
 
 </div>
 
-<!-- FOOTER -->
 <div class="credits">
 © Mezuki X Ipungg - 2026
 </div>
@@ -615,16 +697,20 @@ document.getElementById("qrisStep").style.display="block";
 
 }
 
-/* FAST IMGBB UPLOAD */
+/* SUPER FAST IMGBB */
 document.getElementById("proof")
-.addEventListener("change", async function(e){
+.addEventListener("change", function(e){
 
 let file = e.target.files[0];
 
 if(!file) return;
 
+/* LANGSUNG */
 document.getElementById("uploadText")
-.innerText = "Uploading...";
+.innerText = "Uploaded ✅";
+
+/* ASYNC */
+(async()=>{
 
 let formData = new FormData();
 
@@ -645,26 +731,13 @@ let data = await res.json();
 proofURL =
 data?.data?.url || "";
 
-if(proofURL){
-
-document.getElementById("uploadText")
-.innerText = "Upload Success ✅";
-
-}else{
-
-document.getElementById("uploadText")
-.innerText = "Upload Failed ❌";
-
-}
-
 }catch(err){
 
 console.log(err);
 
-document.getElementById("uploadText")
-.innerText = "Upload Error ❌";
-
 }
+
+})();
 
 });
 
@@ -685,14 +758,14 @@ localStorage.getItem("wa")
 || "6285198959920";
 
 let text =
-`🧾 ORDER
+`🧾 FORMAT ORDER
 
 Nama : ${nama}
 ${product}
 ${date}
 
 📎 Bukti Pembayaran :
-${proofURL || "Belum upload"}`;
+${proofURL || "Sedang Upload..."}`;
 
 window.open(
 "https://wa.me/"+wa+
