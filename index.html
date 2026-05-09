@@ -6,9 +6,15 @@
 <title>IPUNGG SHOP</title>
 
 <style>
-body{
+
+*{
 margin:0;
-font-family:Arial;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
 background:#090014;
 color:white;
 }
@@ -18,85 +24,80 @@ nav{
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:15px;
+padding:16px;
 background:#120020;
 position:sticky;
 top:0;
 z-index:999;
 }
 
+.nav-left{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
 .logo-img{
 width:38px;
 height:38px;
 border-radius:50%;
+object-fit:cover;
+box-shadow:0 0 10px #8b5cf6;
 }
 
 .logo{
+font-size:20px;
 font-weight:bold;
 }
 
 .hamburger{
-font-size:26px;
+font-size:28px;
 cursor:pointer;
 }
 
 /* MENU */
-.mobile-menu{
+.menu{
 display:none;
 position:absolute;
-right:10px;
 top:60px;
+right:15px;
 background:#170028;
 border:1px solid #8b5cf6;
-border-radius:12px;
+border-radius:16px;
 width:220px;
-z-index:1000;
+overflow:hidden;
 }
 
-.mobile-menu a{
+.menu a{
 display:block;
-padding:12px;
+padding:14px;
 color:white;
 text-decoration:none;
-border-bottom:1px solid #222;
+border-bottom:1px solid rgba(255,255,255,.08);
 }
 
-/* BANNER CLEAN */
+.menu a:hover{
+background:#24003d;
+}
+
+/* BANNER */
 .banner img{
 width:100%;
-height:260px;
+height:220px;
 object-fit:cover;
-}
-
-/* TOP MENU */
-.top-menu{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:8px;
-padding:12px;
-}
-
-.menu-card{
-background:#140022;
-border:1px solid #8b5cf6;
-border-radius:12px;
-padding:10px;
-text-align:center;
-cursor:pointer;
-font-size:12px;
 }
 
 /* PRODUCTS */
 .products{
 display:grid;
 grid-template-columns:repeat(2,1fr);
-gap:10px;
-padding:12px;
+gap:14px;
+padding:14px;
 }
 
 .card{
-background:#140022;
-border-radius:12px;
+background:#160025;
+border-radius:20px;
 overflow:hidden;
 border:1px solid #8b5cf6;
 }
@@ -108,19 +109,18 @@ object-fit:cover;
 }
 
 .card-content{
-padding:8px;
+padding:10px;
 }
 
 .btn{
 width:100%;
 padding:10px;
 border:none;
+border-radius:12px;
 background:#7c3aed;
 color:white;
-border-radius:10px;
 font-weight:bold;
 cursor:pointer;
-margin-top:6px;
 }
 
 /* OVERLAY */
@@ -128,37 +128,66 @@ margin-top:6px;
 display:none;
 position:fixed;
 inset:0;
-background:rgba(0,0,0,.9);
-justify-content:center;
-align-items:center;
-z-index:9999;
+background:#090014;
+z-index:99999;
+padding:20px;
 }
 
-.popup{
-background:#150025;
-padding:18px;
-border-radius:12px;
-width:90%;
-max-width:350px;
+.step{
+max-width:420px;
+margin:auto;
+margin-top:40px;
 }
 
-input{
+.step input{
 width:100%;
-padding:10px;
-margin-bottom:8px;
+padding:12px;
+margin-bottom:10px;
 border:none;
-border-radius:8px;
+border-radius:10px;
 background:#25003d;
 color:white;
 }
 
 /* QRIS */
 .qris{
-width:240px;
+width:100%;
+max-width:260px;
 display:block;
-margin:auto;
-margin-bottom:10px;
+margin:15px auto;
+border-radius:18px;
+box-shadow:0 0 25px rgba(139,92,246,.6);
+}
+
+/* UPLOAD */
+.upload-box{
+display:flex;
+align-items:center;
+justify-content:center;
+height:110px;
+border:2px dashed #8b5cf6;
+border-radius:18px;
+margin-top:12px;
+cursor:pointer;
+background:#220033;
+flex-direction:column;
+gap:8px;
+}
+
+.upload-icon{
+font-size:35px;
+}
+
+.btn-full{
+width:100%;
+padding:12px;
+margin-top:12px;
+border:none;
 border-radius:12px;
+background:#7c3aed;
+color:white;
+font-weight:bold;
+cursor:pointer;
 }
 
 /* CREDITS */
@@ -167,192 +196,241 @@ position:fixed;
 bottom:10px;
 left:50%;
 transform:translateX(-50%);
-background:#150025;
-padding:8px 12px;
-border-radius:10px;
+padding:8px 14px;
+background:rgba(124,58,237,.15);
 border:1px solid #8b5cf6;
+border-radius:50px;
 font-size:12px;
 }
+
 </style>
+
 </head>
 
 <body>
 
 <!-- NAV -->
 <nav>
-<div style="display:flex;gap:10px;align-items:center;">
-<img class="logo-img" src="https://cdn-icons-png.flaticon.com/512/5968/5968756.png">
+
+<div class="nav-left">
+
+<img class="logo-img">
+
 <div class="logo">IPUNGG SHOP</div>
+
 </div>
 
-<div class="hamburger" onclick="toggleMenu(event)">☰</div>
+<div class="hamburger" onclick="toggleMenu()">☰</div>
 
-<div class="mobile-menu" id="menu">
-<a href="https://wa.me/6285198959920">💬 Kontak Admin</a>
-<a href="#">👥 Grup Official</a>
-<a href="#">📢 Channel Official</a>
-<a href="admin.html">🛠 Dashboard Admin</a>
+<div class="menu" id="menu">
+
+<a id="waLink">📞 WhatsApp Admin</a>
+<a id="chLink">📢 Channel</a>
+<a id="grLink">👥 Group</a>
+<a href="admin.html">⚙️ Admin</a>
+
 </div>
+
 </nav>
 
-<!-- BANNER CLEAN -->
+<!-- BANNER -->
 <div class="banner">
-<img id="bannerImg"
-src="https://images.unsplash.com/photo-1523275335684-37898b6baf30">
-</div>
-
-<!-- TOP MENU -->
-<div class="top-menu">
-
-<div class="menu-card" onclick="showCategory('all')">SEMUA</div>
-<div class="menu-card" onclick="showCategory('bot')">SEWA BOT</div>
-<div class="menu-card" onclick="showCategory('panel')">PANEL PTRODACTYL</div>
-<div class="menu-card" onclick="showCategory('script')">SCRIPT</div>
-
+<img id="bannerImage">
 </div>
 
 <!-- PRODUCTS -->
-<div class="products"></div>
+<div class="products" id="products"></div>
 
 <!-- ORDER -->
 <div class="overlay" id="overlay">
-<div class="popup">
 
-<div id="step1">
+<div class="step">
 
-<h3>FORM ORDER</h3>
+<div id="formStep">
 
-<input id="nama" placeholder="Nama">
-<input id="product" readonly>
-<input id="date" readonly>
-<input value="QRIS" readonly>
+<h2>FORM ORDER</h2>
 
-<button class="btn" onclick="nextStep()">LANJUT</button>
+<input type="text" id="nama" placeholder="Nama">
+<input type="text" id="product" readonly>
+<input type="text" id="date" readonly>
 
-</div>
-
-<div id="step2" style="display:none;">
-
-<img class="qris"
-src="http://rahmad-elaina.my.id/file/32310f673a.jpg">
-
-<button class="btn" onclick="downloadQRIS()">
-⬇ DOWNLOAD QRIS
-</button>
-
-<input type="file" id="bukti">
-
-<button class="btn" onclick="sendWA()">
-KIRIM BUKTI
+<button class="btn-full" onclick="goQRIS()">
+BAYAR SEKARANG
 </button>
 
 </div>
 
-</div>
+<div id="qrisStep" style="display:none;text-align:center;">
+
+<h2>QRIS PAYMENT</h2>
+
+<img class="qris">
+
+<label for="proof" class="upload-box">
+<div class="upload-icon">📷</div>
+<p>Upload Bukti</p>
+</label>
+
+<input type="file" id="proof" style="display:none;">
+
+<button class="btn-full" onclick="sendWA()">
+KIRIM KE ADMIN
+</button>
+
 </div>
 
-<div class="credits">© Mezuki X Ipungg 2026</div>
+</div>
+
+</div>
+
+<!-- CREDITS -->
+<div class="credits">
+© Mezuki X Ipungg - 2026
+</div>
 
 <script>
 
-/* MENU FIX (NO BUG) */
-function toggleMenu(event){
+let proofURL="";
 
-if(event) event.stopPropagation();
-
-let m=document.getElementById("menu");
-
-m.style.display = (m.style.display === "block") ? "none" : "block";
-}
-
-/* CLOSE MENU CLICK OUTSIDE */
-document.addEventListener("click",function(e){
-
-const menu=document.getElementById("menu");
-const ham=document.querySelector(".hamburger");
-
-if(!menu.contains(e.target) && !ham.contains(e.target)){
-menu.style.display="none";
-}
-
-});
-
-/* PRODUCTS */
-const products=[
-{name:"Bot WhatsApp",category:"bot",image:"https://images.unsplash.com/photo-1555949963"},
-{name:"Panel Pterodactyl",category:"panel",image:"https://images.unsplash.com/photo-1558494949"},
-{name:"Script Premium",category:"script",image:"https://images.unsplash.com/photo-1526374965328"}
-];
-
-function loadProducts(){
-const box=document.querySelector(".products");
-box.innerHTML="";
-
-products.forEach(p=>{
-box.innerHTML+=`
-<div class="card ${p.category}">
-<img src="${p.image}">
-<div class="card-content">
-<h4>${p.name}</h4>
-<button class="btn" onclick="openOrder('${p.name}')">ORDER</button>
-</div>
-</div>`;
-});
-}
-loadProducts();
-
-/* FILTER */
-function showCategory(cat){
-document.querySelectorAll(".card").forEach(c=>{
-c.style.display=(cat==="all"||c.classList.contains(cat))?"block":"none";
-});
-}
-
-/* ORDER */
-function openOrder(name){
-document.getElementById("overlay").style.display="flex";
-
-document.getElementById("step1").style.display="block";
-document.getElementById("step2").style.display="none";
-
-document.getElementById("product").value=name;
-document.getElementById("date").value=new Date().toLocaleDateString("id-ID");
-}
-
-function nextStep(){
-document.getElementById("step1").style.display="none";
-document.getElementById("step2").style.display="block";
-}
-
-/* QRIS DOWNLOAD */
-function downloadQRIS(){
-const img=document.querySelector(".qris");
-
-const a=document.createElement("a");
-a.href=img.src;
-a.download="QRIS.jpg";
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-}
-
-/* WA SEND */
-function sendWA(){
-const nama=document.getElementById("nama").value;
-const product=document.getElementById("product").value;
-const date=document.getElementById("date").value;
-
-const text=`
-ORDER BARU
-Nama:${nama}
-Produk:${product}
-Tanggal:${date}
-`;
-
-window.open(
-`https://wa.me/6285198959920?text=${encodeURIComponent(text)}`
+/* DEFAULT QRIS FIX */
+if(!localStorage.getItem("qris")){
+localStorage.setItem(
+"qris",
+"https://img2.pixhost.to/images/7739/723666370_elaina-1778206415636.jpg"
 );
 }
+
+/* MENU */
+function toggleMenu(){
+let m=document.getElementById("menu");
+m.style.display = m.style.display==="block"?"none":"block";
+}
+
+/* LOAD SETTINGS */
+function loadSettings(){
+
+let logo=localStorage.getItem("logo");
+if(logo){
+document.querySelector(".logo-img").src=logo;
+}
+
+let banner=localStorage.getItem("banner");
+if(banner){
+document.getElementById("bannerImage").src=banner;
+}
+
+let qris=localStorage.getItem("qris");
+document.querySelector(".qris").src=qris;
+
+let wa=localStorage.getItem("wa");
+if(wa){
+document.getElementById("waLink").href="https://wa.me/"+wa;
+}
+
+let ch=localStorage.getItem("channel");
+if(ch){
+document.getElementById("chLink").href=ch;
+}
+
+let gr=localStorage.getItem("group");
+if(gr){
+document.getElementById("grLink").href=gr;
+}
+
+}
+
+/* PRODUCTS */
+function loadProducts(){
+
+let data=JSON.parse(localStorage.getItem("products"))||[];
+
+let box=document.getElementById("products");
+box.innerHTML="";
+
+data.forEach(p=>{
+
+box.innerHTML+=`
+<div class="card">
+<img src="${p.image}">
+<div class="card-content">
+<h3>${p.name}</h3>
+<p>${p.price}</p>
+<button class="btn" onclick="buy('${p.name}')">ORDER</button>
+</div>
+</div>
+`;
+
+});
+
+}
+
+/* BUY */
+function buy(name){
+
+document.getElementById("overlay").style.display="block";
+
+document.getElementById("formStep").style.display="block";
+document.getElementById("qrisStep").style.display="none";
+
+document.getElementById("product").value="Produk: "+name;
+document.getElementById("date").value="Tanggal: "+new Date().toLocaleDateString("id-ID");
+
+history.pushState({page:"order"},"","");
+
+}
+
+/* BACK FIX */
+window.addEventListener("popstate",function(){
+
+if(document.getElementById("overlay").style.display==="block"){
+document.getElementById("overlay").style.display="none";
+history.pushState(null,"","");
+}
+
+});
+
+/* NEXT */
+function goQRIS(){
+document.getElementById("formStep").style.display="none";
+document.getElementById("qrisStep").style.display="block";
+}
+
+/* UPLOAD */
+document.getElementById("proof").addEventListener("change",e=>{
+let file=e.target.files[0];
+let reader=new FileReader();
+reader.onload=()=>proofURL=reader.result;
+reader.readAsDataURL(file);
+});
+
+/* SEND WA */
+function sendWA(){
+
+let nama=document.getElementById("nama").value;
+let product=document.getElementById("product").value;
+let date=document.getElementById("date").value;
+
+let wa=localStorage.getItem("wa")||"6285198959920";
+
+let text=`🧾 ORDER
+
+Nama: ${nama}
+${product}
+${date}
+
+Bukti:
+${proofURL||"Tidak ada"}`;
+
+window.open(
+`https://wa.me/${wa}?text=${encodeURIComponent(text)}`,
+"_blank"
+);
+
+}
+
+/* INIT */
+loadSettings();
+loadProducts();
 
 </script>
 
