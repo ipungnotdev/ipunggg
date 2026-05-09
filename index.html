@@ -31,12 +31,6 @@ top:0;
 z-index:999;
 }
 
-.nav-left{
-display:flex;
-align-items:center;
-gap:10px;
-}
-
 .logo-img{
 width:38px;
 height:38px;
@@ -54,6 +48,7 @@ font-size:28px;
 cursor:pointer;
 }
 
+/* MENU */
 .menu{
 display:none;
 position:absolute;
@@ -174,25 +169,7 @@ border-radius:18px;
 box-shadow:0 0 25px rgba(139,92,246,.6);
 }
 
-/* UPLOAD */
-.upload-box{
-display:flex;
-align-items:center;
-justify-content:center;
-height:110px;
-border:2px dashed #8b5cf6;
-border-radius:18px;
-margin-top:12px;
-cursor:pointer;
-background:#220033;
-flex-direction:column;
-gap:8px;
-}
-
-.upload-icon{
-font-size:35px;
-}
-
+/* BUTTON */
 .btn-full{
 width:100%;
 padding:12px;
@@ -224,42 +201,33 @@ font-size:12px;
 
 <body>
 
-<!-- NAV -->
 <nav>
 
-<div class="nav-left">
-
+<div style="display:flex;align-items:center;gap:10px;">
 <img class="logo-img">
-
 <div class="logo">IPUNGG SHOP</div>
-
 </div>
 
 <div class="hamburger" onclick="toggleMenu()">☰</div>
 
 <div class="menu" id="menu">
-
 <a href="admin.html">⚙️ Admin</a>
-<a id="waLink">📞 WhatsApp</a>
+<a id="waLink">📞 WA</a>
 <a id="chLink">📢 Channel</a>
 <a id="grLink">👥 Group</a>
-
 </div>
 
 </nav>
 
-<!-- BANNER -->
 <div class="banner">
 <img id="bannerImage">
 </div>
 
-<!-- CATEGORY -->
 <div class="category" id="categoryBox"></div>
 
-<!-- PRODUCTS -->
 <div class="products" id="products"></div>
 
-<!-- OVERLAY ORDER -->
+<!-- OVERLAY -->
 <div class="overlay" id="overlay">
 
 <div class="step">
@@ -284,13 +252,6 @@ BAYAR SEKARANG
 
 <img class="qris">
 
-<label for="proof" class="upload-box">
-<div class="upload-icon">📷</div>
-<p>Upload Bukti</p>
-</label>
-
-<input type="file" id="proof" style="display:none;">
-
 <button class="btn-full" onclick="sendWA()">
 KIRIM KE ADMIN
 </button>
@@ -301,45 +262,44 @@ KIRIM KE ADMIN
 
 </div>
 
-<!-- CREDITS -->
 <div class="credits">
 © Mezuki X Ipungg - 2026
 </div>
 
 <script>
 
-/* QRIS DEFAULT (WAJIB) */
+/* QRIS DEFAULT */
 if(!localStorage.getItem("qris")){
 localStorage.setItem("qris","https://img2.pixhost.to/images/7739/723666370_elaina-1778206415636.jpg");
 }
 
-let proofURL="";
+/* BACK BUTTON FIX */
+history.pushState(null,null,location.href);
+
+window.addEventListener("popstate",function(){
+
+let overlay=document.getElementById("overlay");
+
+if(overlay.style.display==="block"){
+overlay.style.display="none";
+history.pushState(null,null,location.href);
+}
+
+});
 
 /* MENU */
 function toggleMenu(){
 let m=document.getElementById("menu");
-m.style.display = m.style.display==="block"?"none":"block";
+m.style.display=m.style.display==="block"?"none":"block";
 }
 
-/* LOAD SETTINGS */
+/* LOAD */
 function loadSettings(){
-
-let logo=localStorage.getItem("logo");
-if(logo) document.querySelector(".logo-img").src=logo;
 
 let banner=localStorage.getItem("banner");
 if(banner) document.getElementById("bannerImage").src=banner;
 
-document.querySelector(".qris").src = localStorage.getItem("qris");
-
-let wa=localStorage.getItem("wa");
-if(wa) document.getElementById("waLink").href="https://wa.me/"+wa;
-
-let ch=localStorage.getItem("channel");
-if(ch) document.getElementById("chLink").href=ch;
-
-let gr=localStorage.getItem("group");
-if(gr) document.getElementById("grLink").href=gr;
+document.querySelector(".qris").src=localStorage.getItem("qris");
 
 }
 
@@ -350,6 +310,7 @@ let data=JSON.parse(localStorage.getItem("categories"))||[];
 
 let box=document.getElementById("categoryBox");
 
+box.innerHTML=`<button onclick="filter('all')">SEMUA</button>`;
 
 data.forEach(c=>{
 box.innerHTML+=`
@@ -383,17 +344,19 @@ box.innerHTML+=`
 
 }
 
-/* FILTER */
+/* FILTER FIX */
 function filter(cat){
 
 let items=document.querySelectorAll(".card");
 
 items.forEach(i=>{
+
 if(cat==="all"){
 i.style.display="block";
 }else{
 i.style.display=i.classList.contains(cat)?"block":"none";
 }
+
 });
 
 }
@@ -409,6 +372,8 @@ document.getElementById("qrisStep").style.display="none";
 document.getElementById("product").value="Produk: "+name;
 document.getElementById("date").value=new Date().toLocaleDateString("id-ID");
 
+history.pushState({},"","");
+
 }
 
 /* NEXT */
@@ -417,15 +382,7 @@ document.getElementById("formStep").style.display="none";
 document.getElementById("qrisStep").style.display="block";
 }
 
-/* UPLOAD */
-document.getElementById("proof").addEventListener("change",e=>{
-let file=e.target.files[0];
-let reader=new FileReader();
-reader.onload=()=>proofURL=reader.result;
-reader.readAsDataURL(file);
-});
-
-/* SEND WA */
+/* WA */
 function sendWA(){
 
 let nama=document.getElementById("nama").value;
@@ -438,10 +395,7 @@ let text=`🧾 ORDER
 
 Nama: ${nama}
 ${product}
-${date}
-
-Bukti:
-${proofURL||"Tidak ada"}`;
+${date}`;
 
 window.open("https://wa.me/"+wa+"?text="+encodeURIComponent(text),"_blank");
 
