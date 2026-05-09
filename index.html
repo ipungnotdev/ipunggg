@@ -583,6 +583,11 @@ function loadProducts(){
 let data =
 JSON.parse(localStorage.getItem("products")) || [];
 
+/* PIN PALING ATAS */
+data.sort((a,b)=>
+(b.pin===true)-(a.pin===true)
+);
+
 let box =
 document.getElementById("products");
 
@@ -601,13 +606,17 @@ box.innerHTML += `
 <div 
 class="card item"
 data-category="${category}"
+data-pin="${p.pin}"
 >
 
 <img src="${p.image}">
 
 <div class="card-content">
 
-<h3>${p.name}</h3>
+<h3>
+${p.pin ? "⭐ " : ""}
+${p.name}
+</h3>
 
 <div class="price">
 ${p.price}
@@ -628,6 +637,9 @@ ORDER
 
 });
 
+/* DEFAULT */
+filterProducts("all");
+
 }
 
 /* FILTER */
@@ -644,12 +656,22 @@ document.querySelectorAll(".item");
 
 items.forEach(item=>{
 
+/* SEMUA = PIN ONLY */
 if(category==="all"){
+
+if(item.dataset.pin==="true"){
 
 item.style.display="block";
 
+}else{
+
+item.style.display="none";
+
 }
 
+}
+
+/* CATEGORY */
 else if(
 item.dataset.category===category
 ){
@@ -705,11 +727,9 @@ let file = e.target.files[0];
 
 if(!file) return;
 
-/* LANGSUNG */
 document.getElementById("uploadText")
 .innerText = "Uploaded ✅";
 
-/* ASYNC */
 (async()=>{
 
 let formData = new FormData();
@@ -763,6 +783,7 @@ let text =
 Nama : ${nama}
 ${product}
 ${date}
+*METODE PAYMENT : QRIS*
 
 📎 Bukti Pembayaran :
 ${proofURL || "Sedang Upload..."}`;
