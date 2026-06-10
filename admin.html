@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — OTP Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<style>
+  :root {
+    --bg: #080810;
+    --surface: #0f0f18;
+    --surface2: #161620;
+    --surface3: #1e1e2e;
+    --border: #252535;
+    --accent: #7c5cfc;
+    --accent2: #c95cf5;
+    --green: #22d07a;
+    --red: #f04a4a;
+    --yellow: #f0a54a;
+    --text: #e8e8f5;
+    --muted: #6868a0;
+    --glow: rgba(124,92,252,0.15);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width:240px; min-height:100vh; background:var(--surface);
+    border-right:1px solid var(--border); display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh; flex-shrink:0;
+  }
+  .sidebar-logo {
+    padding:24px 20px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:10px;
+  }
+  .logo-icon-admin {
+    width:36px; height:36px; border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex; align-items:center; justify-content:center; font-size:16px;
+  }
+  .logo-text-admin { font-family:'Syne',sans-serif; font-weight:800; font-size:15px;
+    background:linear-gradient(135deg,#fff,#c4b5fd); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .sidebar-badge {
+    font-size:9px; background:rgba(240,165,74,0.15); color:var(--yellow);
+    border:1px solid rgba(240,165,74,0.3); border-radius:4px; padding:2px 6px;
+    font-weight:700; letter-spacing:0.5px;
+  }
+  .nav { flex:1; padding:12px 0; }
+  .nav-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 20px; cursor:pointer; font-size:14px; font-weight:500;
+    color:var(--muted); transition:all .2s; border-left:3px solid transparent;
+  }
+  .nav-item:hover { background:var(--surface2); color:var(--text); }
+  .nav-item.active { background:rgba(124,92,252,0.08); color:var(--accent); border-left-color:var(--accent); }
+  .nav-icon { font-size:16px; width:20px; text-align:center; }
+  .sidebar-footer { padding:16px 20px; border-top:1px solid var(--border); }
+  .sidebar-footer a {
+    display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);
+    text-decoration:none; transition:color .2s;
+  }
+  .sidebar-footer a:hover { color:var(--accent); }
+
+  /* MAIN */
+  .main-content { flex:1; overflow-y:auto; min-height:100vh; }
+
+  /* TOP BAR */
+  .topbar {
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:0 32px; display:flex; align-items:center; justify-content:space-between;
+    height:60px; position:sticky; top:0; z-index:50;
+  }
+  .topbar-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; }
+  .topbar-actions { display:flex; align-items:center; gap:12px; }
+  .status-dot {
+    width:8px; height:8px; border-radius:50%; background:var(--green);
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,208,122,0.4)} 50%{opacity:0.8;box-shadow:0 0 0 6px transparent} }
+  .topbar-user { font-size:13px; color:var(--muted); }
+
+  /* CONTENT */
+  .content { padding:32px; }
+  .page { display:none; animation:fadeIn .3s ease; }
+  .page.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* CARDS */
+  .card {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:16px; padding:28px; margin-bottom:20px;
+  }
+  .card-title {
+    font-family:'Syne',sans-serif; font-size:16px; font-weight:700;
+    margin-bottom:20px; display:flex; align-items:center; gap:8px;
+  }
+  .card-title::before {
+    content:''; display:block; width:4px; height:20px;
+    background:linear-gradient(var(--accent),var(--accent2)); border-radius:2px;
+  }
+
+  /* STATS GRID */
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+  .stat-card {
+    background:var(--surface2); border:1px solid var(--border); border-radius:14px;
+    padding:20px; position:relative; overflow:hidden;
+  }
+  .stat-card::after {
+    content:''; position:absolute; top:-40px; right:-40px;
+    width:100px; height:100px; border-radius:50%;
+    background:var(--glow); pointer-events:none;
+  }
+  .stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+  .stat-value { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; }
+  .stat-sub { font-size:12px; color:var(--muted); margin-top:4px; }
+  .stat-green .stat-value { color:var(--green); }
+  .stat-purple .stat-value { color:var(--accent); }
+  .stat-yellow .stat-value { color:var(--yellow); }
+
+  /* FORM */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group.full { grid-column:1/-1; }
+  .form-label { font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+  .form-input {
+    background:var(--surface3); border:1px solid var(--border);
+    border-radius:10px; padding:12px 14px; color:var(--text);
+    font-family:'DM Sans',sans-serif; font-size:14px; outline:none; transition:border .2s;
+  }
+  .form-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,92,252,0.1); }
+  .form-input::placeholder { color:var(--muted); }
+  .form-hint { font-size:11px; color:var(--muted); }
+  .form-input.mono { font-family:'DM Mono',monospace; font-size:13px; letter-spacing:0.5px; }
+
+  /* TOGGLE */
+  .toggle-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 0; border-bottom:1px solid var(--border);
+  }
+  .toggle-row:last-child { border-bottom:none; }
+  .toggle-info { }
+  .toggle-label { font-size:14px; font-weight:500; margin-bottom:3px; }
+  .toggle-desc { font-size:12px; color:var(--muted); }
+  .toggle {
+    width:44px; height:24px; background:var(--border); border-radius:12px;
+    position:relative; cursor:pointer; transition:background .2s; flex-shrink:0;
+  }
+  .toggle.on { background:var(--accent); }
+  .toggle::after {
+    content:''; position:absolute; top:3px; left:3px;
+    width:18px; height:18px; border-radius:50%; background:#fff;
+    transition:transform .2s; box-shadow:0 2px 4px rgba(0,0,0,0.3);
+  }
+  .toggle.on::after { transform:translateX(20px); }
+
+  /* BTN */
+  .btn {
+    padding:12px 24px; border-radius:10px; border:none; cursor:pointer;
+    font-family:'Syne',sans-serif; font-size:14px; font-weight:700; transition:all .2s;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn-primary {
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff; box-shadow:0 4px 16px rgba(124,92,252,0.3);
+  }
+  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 24px rgba(124,92,252,0.4); }
+  .btn-secondary { background:var(--surface3); color:var(--text); border:1px solid var(--border); }
+  .btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+  .btn-danger { background:rgba(240,74,74,0.12); color:var(--red); border:1px solid rgba(240,74,74,0.25); }
+  .btn-danger:hover { background:rgba(240,74,74,0.2); }
+  .btn-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .btn-sm-admin {
+    padding:8px 16px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface3); color:var(--muted); font-size:12px; cursor:pointer;
+    transition:all .2s; font-family:'DM Sans',sans-serif;
+  }
+  .btn-sm-admin:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* MARGIN CALCULATOR */
+  .margin-calc {
+    background:var(--surface3); border:1px solid var(--border); border-radius:12px;
+    padding:16px 20px; display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:12px;
+    align-items:center; text-align:center; margin-top:16px;
+  }
+  .calc-item { }
+  .calc-label { font-size:11px; color:var(--muted); margin-bottom:4px; }
+  .calc-val { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
+  .calc-op { font-size:20px; color:var(--muted); }
+  .calc-val.green { color:var(--green); }
+  .calc-val.accent { color:var(--accent); }
+
+  /* TABLE */
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; }
+  th { padding:10px 14px; text-align:left; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.5px; color:var(--muted); border-bottom:1px solid var(--border); font-weight:600; }
+  td { padding:12px 14px; font-size:13px; border-bottom:1px solid rgba(37,37,53,0.5); }
+  tr:hover td { background:rgba(124,92,252,0.04); }
+  .badge {
+    display:inline-flex; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:600;
+  }
+  .badge-green { background:rgba(34,208,122,0.12); color:var(--green); }
+  .badge-red { background:rgba(240,74,74,0.12); color:var(--red); }
+  .badge-yellow { background:rgba(240,165,74,0.12); color:var(--yellow); }
+
+  /* LOGIN */
+  .login-wrap {
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:var(--bg);
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(124,92,252,0.1) 0%, transparent 60%);
+  }
+  .login-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:24px;
+    padding:48px 40px; width:380px; text-align:center;
+  }
+  .login-icon { font-size:40px; margin-bottom:16px; }
+  .login-title { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; margin-bottom:8px; }
+  .login-sub { font-size:14px; color:var(--muted); margin-bottom:32px; }
+  .login-card .form-group { text-align:left; }
+  .login-error { color:var(--red); font-size:13px; margin-top:12px; }
+
+  /* TOAST */
+  .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+  .toast {
+    background:var(--surface2); border:1px solid var(--border); border-radius:12px;
+    padding:14px 18px; font-size:13px; min-width:260px;
+    animation:slideIn .3s ease; box-shadow:0 8px 32px rgba(0,0,0,0.5);
+    display:flex; align-items:center; gap:10px;
+  }
+  .toast.success { border-left:3px solid var(--green); }
+  .toast.error { border-left:3px solid var(--red); }
+  .toast.info { border-left:3px solid var(--accent); }
+  @keyframes slideIn { from{transform:translateX(80px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+  /* EMOJI PICKER */
+  .emoji-picker {
+    display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;
+    background:var(--surface3); border:1px solid var(--border);
+    border-radius:10px; padding:10px; max-height:120px; overflow-y:auto;
+  }
+  .emoji-opt {
+    width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+    font-size:18px; border-radius:6px; cursor:pointer; transition:background .15s;
+  }
+  .emoji-opt:hover { background:rgba(124,92,252,0.15); }
+  .emoji-opt.selected { background:rgba(124,92,252,0.25); box-shadow:0 0 0 2px var(--accent); }
+
+  /* SECTION HEADER */
+  .section-header { margin-bottom:24px; }
+  .section-header h2 { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; }
+  .section-header p { font-size:14px; color:var(--muted); margin-top:4px; }
+
+  @media(max-width:768px){
+    .sidebar { display:none; }
+    .form-grid { grid-template-columns:1fr; }
+    .margin-calc { grid-template-columns:1fr; }
+    .content { padding:20px; }
+    .stats-grid { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-wrap" id="loginScreen">
+  <div class="login-card">
+    <div class="login-icon">🔒</div>
+    <div class="login-title">Admin Panel</div>
+    <div class="login-sub">Masukkan password untuk masuk ke dashboard</div>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doLogin()">
+      🚀 Masuk ke Dashboard
+    </button>
+    <div class="login-error" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp" style="display:none;width:100%;display:flex;display:none;">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon-admin" id="adminLogoIcon">🔐</div>
+      <div>
+        <div class="logo-text-admin" id="adminStoreName">OTP Store</div>
+        <div class="sidebar-badge">ADMIN</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('settings')">
+        <span class="nav-icon">⚙️</span> Pengaturan API
+      </div>
+      <div class="nav-item" onclick="showPage('margin')">
+        <span class="nav-icon">💹</span> Margin & Harga
+      </div>
+      <div class="nav-item" onclick="showPage('store')">
+        <span class="nav-icon">🏪</span> Tampilan Toko
+      </div>
+      <div class="nav-item" onclick="showPage('audio')">
+        <span class="nav-icon">🎵</span> Audio & Notifikasi
+      </div>
+      <div class="nav-item" onclick="showPage('users')">
+        <span class="nav-icon">👥</span> Data User
+      </div>
+      <div class="nav-item" onclick="showPage('security')">
+        <span class="nav-icon">🔒</span> Ubah Password
+      </div>
+      <div class="nav-item" onclick="showPage('maintenance')">
+        <span class="nav-icon">🛠️</span> Maintenance
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="store.html" target="_blank">🛍️ Lihat Toko</a>
+      <br><br>
+      <a href="#" onclick="doLogout()" style="color:var(--red)!important">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-actions">
+        <div class="status-dot"></div>
+        <span class="topbar-user">Firebase Connected</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="section-header">
+          <h2>📊 Dashboard</h2>
+          <p>Ringkasan status dan konfigurasi toko Anda</p>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card stat-purple">
+            <div class="stat-label">Saldo API</div>
+            <div class="stat-value" id="dashBalance">-</div>
+            <div class="stat-sub">Saldo rumahotp.io</div>
+          </div>
+          <div class="stat-card stat-green">
+            <div class="stat-label">Margin Per Nomor</div>
+            <div class="stat-value" id="dashMargin">-</div>
+            <div class="stat-sub">Keuntungan Anda</div>
+          </div>
+          <div class="stat-card stat-yellow">
+            <div class="stat-label">Status API</div>
+            <div class="stat-value" id="dashApiStatus">-</div>
+            <div class="stat-sub" id="dashApiKey">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Nama Toko</div>
+            <div class="stat-value" style="font-size:16px;" id="dashStoreName">-</div>
+            <div class="stat-sub">Identitas toko</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔑 API Key Aktif</div>
+          <div style="background:var(--surface3);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);word-break:break-all;" id="dashApiKeyFull">Belum dikonfigurasi</div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <button class="btn-sm-admin" onclick="showPage('settings')">✏️ Edit API Key</button>
+            <button class="btn-sm-admin" onclick="checkBalance()">🔄 Cek Saldo</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🎛️ Quick Actions</div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="showPage('settings')">⚙️ Atur API</button>
+            <button class="btn btn-secondary" onclick="showPage('margin')">💹 Atur Margin</button>
+            <button class="btn btn-secondary" onclick="showPage('store')">🏪 Atur Toko</button>
+            <a href="store.html" target="_blank" class="btn btn-secondary">🛍️ Buka Toko</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- API SETTINGS -->
+      <div class="page" id="page-settings">
+        <div class="section-header">
+          <h2>⚙️ Pengaturan API</h2>
+          <p>Konfigurasi koneksi ke rumahotp.io</p>
+        </div>
+        <div class="card">
+          <div class="card-title">🔑 API Key RumahOTP</div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label class="form-label">API Key</label>
+              <input class="form-input mono" id="inputApiKey" type="password" placeholder="Masukkan API Key dari rumahotp.io">
+              <span class="form-hint">Dapatkan API Key dari dashboard rumahotp.io → Profile → API Key</span>
+            </div>
+            <div class="form-group full">
+              <div class="btn-row">
+                <button class="btn btn-primary" onclick="saveApiKey()">💾 Simpan API Key</button>
+                <button class="btn btn-secondary" onclick="toggleApiKeyVisibility()">👁 Tampilkan</button>
+                <button class="btn btn-secondary" onclick="checkBalance()">🔄 Test Koneksi</button>
+              </div>
+            </div>
+          </div>
+          <div id="apiTestResult" style="margin-top:16px;display:none;"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📚 Dokumentasi API</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.8;">
+            <p style="margin-bottom:12px;">API rumahotp.io menggunakan header <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;">x-apikey</code> untuk autentikasi.</p>
+            <div style="background:var(--surface3);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.8;color:var(--text);">
+              <div style="color:var(--muted);">// Base URL</div>
+              <div>https://www.rumahotp.io/api</div>
+              <br>
+              <div style="color:var(--muted);">// Endpoints utama:</div>
+              <div><span style="color:var(--green);">GET</span> /v1/user/balance — Cek saldo</div>
+              <div><span style="color:var(--green);">GET</span> /v2/services — List aplikasi</div>
+              <div><span style="color:var(--green);">GET</span> /v2/countries?service_id=ID — List negara</div>
+              <div><span style="color:var(--green);">GET</span> /v2/orders?number_id=&provider_id=&operator_id= — Beli nomor</div>
+              <div><span style="color:var(--green);">GET</span> /v1/orders/get_status?order_id= — Cek OTP</div>
+              <div><span style="color:var(--green);">GET</span> /v1/orders/set_status?order_id=&status= — Ubah status</div>
+            </div>
+            <div style="margin-top:12px;">
+              <a href="https://www.rumahotp.io/developer/api" target="_blank" style="color:var(--accent);text-decoration:none;font-size:13px;">📖 Buka Dokumentasi Lengkap →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARGIN -->
+      <div class="page" id="page-margin">
+        <div class="section-header">
+          <h2>💹 Pengaturan Margin</h2>
+          <p>Atur keuntungan dari setiap nomor yang terjual</p>
+        </div>
+        <div class="card">
+          <div class="card-title">💰 Margin Per Nomor</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Margin (Rupiah)</label>
+              <input class="form-input" id="inputMargin" type="number" min="0" step="100" placeholder="1000">
+              <span class="form-hint">Keuntungan yang Anda ambil per nomor (dalam Rupiah)</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Preview Harga</label>
+              <div style="background:var(--surface3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--muted);" id="marginPreview">
+                Masukkan margin untuk preview
+              </div>
+            </div>
+          </div>
+          <div class="margin-calc" id="marginCalc" style="display:none;">
+            <div class="calc-item">
+              <div class="calc-label">Harga Dasar</div>
+              <div class="calc-val accent" id="calcBase">Rp1.100</div>
+            </div>
+            <div class="calc-op">+</div>
+            <div class="calc-item">
+              <div class="calc-label">Margin Anda</div>
+              <div class="calc-val" id="calcMargin" style="color:var(--yellow)">Rp0</div>
+            </div>
+            <div class="calc-op">=</div>
+            <div class="calc-item">
+              <div class="calc-label">Harga Jual</div>
+              <div class="calc-val green" id="calcFinal">Rp1.100</div>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:20px;">
+            <button class="btn btn-primary" onclick="saveMargin()">💾 Simpan Margin</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📊 Simulasi Keuntungan</div>
+          <div style="color:var(--muted);font-size:13px;margin-bottom:16px;">Estimasi keuntungan berdasarkan jumlah penjualan per hari</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;" id="profitSim">
+            <!-- generated -->
+          </div>
+        </div>
+      </div>
+
+      <!-- STORE SETTINGS -->
+      <div class="page" id="page-store">
+        <div class="section-header">
+          <h2>🏪 Tampilan Toko</h2>
+          <p>Kustomisasi nama, logo, dan tampilan toko publik</p>
+        </div>
+        <div class="card">
+          <div class="card-title">🏷️ Identitas Toko</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nama Toko</label>
+              <input class="form-input" id="inputStoreName" placeholder="OTP Store">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ikon Toko (Emoji)</label>
+              <input class="form-input" id="inputStoreIcon" placeholder="🔐" maxlength="4" style="font-size:20px;">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Pilih Ikon Cepat</label>
+              <div class="emoji-picker">
+                🔐 🔑 🛡️ 📱 💬 🌐 ⚡ 🔥 💎 🚀 🎯 🛒 💰 📲 🔒 🌟 💡 🎪 🏆 🎁
+                .split(' ').map(e => e.trim()).filter(Boolean).map not needed, rendered below
+              </div>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Judul Hero</label>
+              <input class="form-input" id="inputHeroTitle" placeholder="Beli Nomor OTP Murah & Instan">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Subtitle Hero</label>
+              <input class="form-input" id="inputHeroSubtitle" placeholder="Deskripsi singkat toko Anda">
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:20px;">
+            <button class="btn btn-primary" onclick="saveStoreSettings()">💾 Simpan Pengaturan Toko</button>
+            <a href="store.html" target="_blank" class="btn btn-secondary">👁 Preview Toko</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🎨 Preview Toko</div>
+          <div style="background:var(--surface3);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center;">
+            <div style="font-size:40px;margin-bottom:8px;" id="previewIcon">🔐</div>
+            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,#fff,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" id="previewName">OTP Store</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:8px;" id="previewTitle">Beli Nomor OTP Murah & Instan</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;" id="previewSub">Deskripsi toko</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIO -->
+      <div class="page" id="page-audio">
+        <div class="section-header">
+          <h2>🎵 Audio & Notifikasi</h2>
+          <p>Konfigurasi suara dan musik latar di halaman toko</p>
+        </div>
+        <div class="card">
+          <div class="card-title">🔊 Toggle Audio</div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">🎵 Musik Latar (Autoplay)</div>
+              <div class="toggle-desc">Putar musik otomatis saat halaman toko dibuka (aktif setelah interaksi pertama user).</div>
+            </div>
+            <div class="toggle" id="toggleBgMusic" onclick="toggleSetting('audioEnabled', this)"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">🔔 Suara Notifikasi OTP</div>
+              <div class="toggle-desc">Mainkan suara ketika OTP berhasil diterima.</div>
+            </div>
+            <div class="toggle on" id="toggleOtpSound" onclick="toggleSetting('otpSound', this)"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🎶 Ganti URL Audio</div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label class="form-label">URL Musik Latar (MP3)</label>
+              <input class="form-input" id="inputAudioUrl" placeholder="https://contoh.com/musik.mp3">
+              <span class="form-hint">Gunakan link MP3 langsung (tidak ada DRM). Kosongkan untuk pakai default.</span>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">URL Suara Notifikasi OTP (MP3)</label>
+              <input class="form-input" id="inputNotifUrl" placeholder="https://contoh.com/notif.mp3">
+              <span class="form-hint">Suara pendek yang diputar saat OTP diterima.</span>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:14px;">
+            <button class="btn btn-secondary" onclick="testAudio('bg')">▶ Test Musik Latar</button>
+            <button class="btn btn-secondary" onclick="testAudio('notif')">🔔 Test Notifikasi</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">💾 Simpan</div>
+          <button class="btn btn-primary" onclick="saveAudioSettings()">💾 Simpan Pengaturan Audio</button>
+        </div>
+      </div>
+
+      <!-- USERS PAGE -->
+      <div class="page" id="page-users">
+        <div class="section-header">
+          <h2>👥 Data User</h2>
+          <p>Semua pengguna terdaftar di toko</p>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 Daftar User</div>
+          <div style="display:flex;gap:10px;margin-bottom:16px;">
+            <button class="btn-sm-admin" onclick="loadUsers()">🔄 Refresh</button>
+          </div>
+          <div id="usersTableWrap">
+            <div style="color:var(--muted);font-size:13px;">Klik Refresh untuk memuat data user...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECURITY PAGE -->
+      <div class="page" id="page-security">
+        <div class="section-header">
+          <h2>🔒 Ubah Password Admin</h2>
+          <p>Ganti password login dashboard admin</p>
+        </div>
+        <div class="card" style="max-width:420px;">
+          <div class="card-title">🔑 Password Baru</div>
+          <div class="form-group">
+            <label class="form-label">Password Baru</label>
+            <input class="form-input" type="password" id="newAdminPass" placeholder="Minimal 4 karakter">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Konfirmasi Password</label>
+            <input class="form-input" type="password" id="confirmAdminPass" placeholder="Ulangi password baru">
+          </div>
+          <div class="form-error" id="securityErr" style="color:var(--red);font-size:12px;margin-bottom:10px;"></div>
+          <button class="btn btn-primary" onclick="saveAdminPassword()">💾 Simpan Password Baru</button>
+          <div style="margin-top:14px;font-size:12px;color:var(--muted);">Password default: <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">ipungg</code></div>
+        </div>
+      </div>
+
+      <!-- MAINTENANCE PAGE -->
+      <div class="page" id="page-maintenance">
+        <div class="section-header">
+          <h2>🛠️ Maintenance</h2>
+          <p>Aktifkan mode maintenance untuk menutup akses toko sementara</p>
+        </div>
+        <div class="card" style="max-width:500px;">
+          <div class="card-title">🛠️ Mode Maintenance</div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">Aktifkan Maintenance Sekarang</div>
+              <div class="toggle-desc">Semua pengunjung toko akan melihat halaman maintenance.</div>
+            </div>
+            <div class="toggle" id="toggleMaint" onclick="toggleMaintNow()"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div class="toggle-label">Auto Maintenance Jam 23:00</div>
+              <div class="toggle-desc">Otomatis masuk maintenance setiap jam 23:00 (selesai 00:10), sama seperti jadwal rumahotp.</div>
+            </div>
+            <div class="toggle" id="toggleMaintAuto" onclick="toggleSetting('maintAuto', this)"></div>
+          </div>
+          <div class="form-grid" style="margin-top:16px;">
+            <div class="form-group">
+              <label class="form-label">Jam Selesai Maintenance</label>
+              <input class="form-input" id="inputMaintEnd" placeholder="00:10" value="00:10">
+              <span class="form-hint">Format: HH:MM (misal 00:10)</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Judul Halaman</label>
+              <input class="form-input" id="inputMaintTitle" placeholder="Sedang Maintenance">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Pesan Maintenance</label>
+              <input class="form-input" id="inputMaintMsg" placeholder="Sistem sedang dalam pemeliharaan...">
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:12px;">
+            <button class="btn btn-primary" onclick="saveMaintSettings()">💾 Simpan Pengaturan</button>
+            <button class="btn btn-danger" onclick="turnOffMaint()">✓ Matikan Maintenance</button>
+          </div>
+          <div style="margin-top:14px;padding:12px 14px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;font-size:12px;color:var(--yellow);">
+            ⏰ Jadwal rumahotp: Maintenance mulai <b>23:00</b> selesai <b>00:10</b>
+          </div>
+        </div>
+        <div class="card" style="max-width:500px;margin-top:16px;">
+          <div class="card-title">🖼️ Logo Toko (URL Gambar)</div>
+          <div class="form-group">
+            <label class="form-label">URL Logo (opsional)</label>
+            <input class="form-input" id="inputLogoUrl" placeholder="https://contoh.com/logo.png">
+            <span class="form-hint">Jika diisi, logo gambar akan menggantikan emoji di toko &amp; admin. Kosongkan untuk pakai emoji.</span>
+          </div>
+          <div id="logoPreviewWrap" style="margin-top:10px;display:none;">
+            <img id="logoPreviewImg" src="" alt="Preview" style="width:60px;height:60px;border-radius:14px;object-fit:contain;border:1px solid var(--border);background:var(--surface3);">
+          </div>
+          <div class="btn-row" style="margin-top:12px;">
+            <button class="btn btn-secondary" onclick="previewLogo()">👁 Preview</button>
+            <button class="btn btn-primary" onclick="saveLogoUrl()">💾 Simpan Logo</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end content -->
+  </div><!-- end main-content -->
+</div><!-- end adminApp -->
+
+<div class="toast-container" id="toasts"></div>
+
+<!-- HIDDEN AUDIO -->
+<audio id="testBg" loop>
+  <source src="https://cdn.pixabay.com/audio/2022/11/17/audio_febc508520.mp3" type="audio/mp3">
+</audio>
+<audio id="testNotif">
+  <source src="https://cdn.pixabay.com/audio/2023/03/28/audio_a9dff50bd0.mp3" type="audio/mp3">
+</audio>
+
+<script>
+// ============================================================
+// FIREBASE
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyA9tSehgxD2Pgb7YPy7Pq-_bcuKLKswyos",
+  authDomain: "ipung-store-2b96d.firebaseapp.com",
+  databaseURL: "https://ipung-store-2b96d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ipung-store-2b96d",
+  storageBucket: "ipung-store-2b96d.firebasestorage.app",
+  appId: "1:906202337063:web:1a39b7bad99a85b23c2302"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ============================================================
+// STATE
+// ============================================================
+let config = {};
+// Simple admin auth via Firebase
+const ADMIN_KEY = 'otp_admin_auth';
+
+// ============================================================
+// LOGIN
+// ============================================================
+function doLogin() {
+  const pass = document.getElementById('loginPass').value;
+  if (!pass) { document.getElementById('loginErr').textContent = '❌ Masukkan password'; return; }
+  db.ref('admin').once('value', snap => {
+    const a = snap.val() || {};
+    const adminPass = a.password || 'ipungg';
+    if (pass === adminPass) {
+      sessionStorage.setItem(ADMIN_KEY, '1');
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminApp').style.display = 'flex';
+      loadAllConfig();
+    } else {
+      document.getElementById('loginErr').textContent = '❌ Password salah!';
+    }
+  });
+}
+
+function doLogout() {
+  sessionStorage.removeItem(ADMIN_KEY);
+  location.reload();
+}
+
+// Check session
+if (sessionStorage.getItem(ADMIN_KEY) === '1') {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminApp').style.display = 'flex';
+  loadAllConfig();
+} else {
+  document.getElementById('adminApp').style.display = 'none';
+}
+
+// ============================================================
+// LOAD CONFIG
+// ============================================================
+function loadAllConfig() {
+  db.ref('config').on('value', snap => {
+    config = snap.val() || {};
+    applyConfig();
+  });
+}
+
+function applyConfig() {
+  // API Key
+  if (config.apiKey) document.getElementById('inputApiKey').value = config.apiKey;
+  // Margin
+  if (config.margin) {
+    document.getElementById('inputMargin').value = config.margin;
+    updateMarginPreview();
+  }
+  // Store
+  document.getElementById('inputStoreName').value = config.storeName || 'OTP Store';
+  document.getElementById('inputStoreIcon').value = config.storeIcon || '🔐';
+  document.getElementById('inputHeroTitle').value = config.heroTitle || 'Beli Nomor OTP Murah & Instan';
+  document.getElementById('inputHeroSubtitle').value = config.heroSubtitle || '';
+  // Audio toggles + URL
+  setToggle('toggleBgMusic', config.audioEnabled);
+  setToggle('toggleOtpSound', config.otpSound !== false);
+  if (config.audioUrl) document.getElementById('inputAudioUrl').value = config.audioUrl;
+  if (config.notifAudioUrl) document.getElementById('inputNotifUrl').value = config.notifAudioUrl;
+  // Maintenance
+  setToggle('toggleMaint', config.maintEnabled);
+  setToggle('toggleMaintAuto', config.maintAuto);
+  if (config.maintEndTime) document.getElementById('inputMaintEnd').value = config.maintEndTime;
+  if (config.maintTitle) document.getElementById('inputMaintTitle').value = config.maintTitle;
+  if (config.maintMsg) document.getElementById('inputMaintMsg').value = config.maintMsg;
+  // Logo URL
+  if (config.logoUrl) document.getElementById('inputLogoUrl').value = config.logoUrl;
+  // Sidebar
+  document.getElementById('adminStoreName').textContent = config.storeName || 'OTP Store';
+  document.getElementById('adminLogoIcon').textContent = config.storeIcon || '🔐';
+  // Preview
+  updatePreview();
+  // Dashboard
+  document.getElementById('dashMargin').textContent = 'Rp' + (config.margin || 0).toLocaleString('id');
+  document.getElementById('dashStoreName').textContent = config.storeName || '-';
+  if (config.apiKey) {
+    document.getElementById('dashApiStatus').textContent = 'Aktif ✓';
+    document.getElementById('dashApiKeyFull').textContent = config.apiKey;
+    document.getElementById('dashApiKey').textContent = '***' + config.apiKey.slice(-6);
+    checkBalance();
+  } else {
+    document.getElementById('dashApiStatus').textContent = 'Belum diset';
+  }
+  // Profit sim
+  renderProfitSim();
+}
+
+// ============================================================
+// SAVE FUNCTIONS
+// ============================================================
+async function saveApiKey() {
+  const key = document.getElementById('inputApiKey').value.trim();
+  if (!key) { showToast('API Key tidak boleh kosong', 'error'); return; }
+  await db.ref('config/apiKey').set(key);
+  showToast('✅ API Key berhasil disimpan!', 'success');
+}
+
+async function saveMargin() {
+  const m = parseInt(document.getElementById('inputMargin').value) || 0;
+  await db.ref('config/margin').set(m);
+  showToast('✅ Margin Rp' + m.toLocaleString('id') + ' disimpan!', 'success');
+}
+
+async function saveStoreSettings() {
+  const data = {
+    storeName: document.getElementById('inputStoreName').value || 'OTP Store',
+    storeIcon: document.getElementById('inputStoreIcon').value || '🔐',
+    heroTitle: document.getElementById('inputHeroTitle').value || 'Beli Nomor OTP',
+    heroSubtitle: document.getElementById('inputHeroSubtitle').value || '',
+  };
+  await db.ref('config').update(data);
+  showToast('✅ Pengaturan toko disimpan!', 'success');
+}
+
+async function saveAudioSettings() {
+  const data = {
+    audioEnabled: document.getElementById('toggleBgMusic').classList.contains('on'),
+    otpSound: document.getElementById('toggleOtpSound').classList.contains('on'),
+    audioUrl: document.getElementById('inputAudioUrl').value.trim(),
+    notifAudioUrl: document.getElementById('inputNotifUrl').value.trim(),
+  };
+  await db.ref('config').update(data);
+  showToast('✅ Pengaturan audio disimpan!', 'success');
+}
+
+// ============================================================
+// BALANCE CHECK
+// ============================================================
+async function checkBalance() {
+  const apiKey = config.apiKey || document.getElementById('inputApiKey').value;
+  if (!apiKey) { showToast('API Key belum diisi', 'error'); return; }
+  try {
+    const res = await fetch('https://www.rumahotp.io/api/v1/user/balance', {
+      headers: { 'x-apikey': apiKey, 'Accept': 'application/json' }
+    });
+    const d = await res.json();
+    if (d && d.success) {
+      document.getElementById('dashBalance').textContent = d.data.formated || '-';
+      const el = document.getElementById('apiTestResult');
+      if (el) {
+        el.style.display = 'block';
+        el.innerHTML = `<div style="background:rgba(34,208,122,0.1);border:1px solid rgba(34,208,122,0.3);border-radius:10px;padding:14px;color:var(--green);font-size:13px;">✅ Koneksi berhasil! Saldo: <strong>${d.data.formated}</strong> · Akun: ${d.data.username}</div>`;
+      }
+      showToast('Saldo: ' + d.data.formated, 'success');
+    } else {
+      showToast('API Key tidak valid atau saldo error', 'error');
+    }
+  } catch(e) {
+    // CORS issue — show note
+    document.getElementById('dashBalance').textContent = 'N/A';
+    showToast('Cek API Key di dokumentasi (CORS browser)', 'info');
+  }
+}
+
+function toggleApiKeyVisibility() {
+  const inp = document.getElementById('inputApiKey');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ============================================================
+// MARGIN PREVIEW
+// ============================================================
+function updateMarginPreview() {
+  const m = parseInt(document.getElementById('inputMargin').value) || 0;
+  const base = 1100; // contoh harga dasar
+  document.getElementById('marginPreview').innerHTML =
+    `Harga Dasar: <strong style="color:var(--accent)">Rp${base.toLocaleString('id')}</strong> + Margin: <strong style="color:var(--yellow)">Rp${m.toLocaleString('id')}</strong> = <strong style="color:var(--green)">Rp${(base+m).toLocaleString('id')}</strong>`;
+  document.getElementById('marginCalc').style.display = 'grid';
+  document.getElementById('calcBase').textContent = 'Rp' + base.toLocaleString('id');
+  document.getElementById('calcMargin').textContent = 'Rp' + m.toLocaleString('id');
+  document.getElementById('calcFinal').textContent = 'Rp' + (base+m).toLocaleString('id');
+}
+document.getElementById('inputMargin') && document.getElementById('inputMargin').addEventListener('input', updateMarginPreview);
+
+function renderProfitSim() {
+  const m = config.margin || 1000;
+  const sims = [5,10,25,50,100,200];
+  document.getElementById('profitSim').innerHTML = sims.map(n => `
+    <div style="background:var(--surface3);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${n} nomor/hari</div>
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--green)">Rp${(n*m).toLocaleString('id')}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">per hari</div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// STORE PREVIEW LIVE
+// ============================================================
+function updatePreview() {
+  document.getElementById('previewIcon').textContent = document.getElementById('inputStoreIcon').value || '🔐';
+  document.getElementById('previewName').textContent = document.getElementById('inputStoreName').value || 'OTP Store';
+  document.getElementById('previewTitle').textContent = document.getElementById('inputHeroTitle').value || 'Beli Nomor OTP';
+  document.getElementById('previewSub').textContent = document.getElementById('inputHeroSubtitle').value || '';
+}
+['inputStoreName','inputStoreIcon','inputHeroTitle','inputHeroSubtitle'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', updatePreview);
+});
+
+// ============================================================
+// TOGGLE
+// ============================================================
+function setToggle(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('on', !!val);
+}
+function toggleSetting(key, el) {
+  el.classList.toggle('on');
+}
+
+// ============================================================
+// AUDIO TEST
+// ============================================================
+function testAudio(type) {
+  if (type === 'bg') {
+    const url = document.getElementById('inputAudioUrl').value.trim()
+      || 'https://cdn.pixabay.com/audio/2022/11/17/audio_febc508520.mp3';
+    const a = document.getElementById('testBg');
+    a.src = url; a.volume = 0.3; a.currentTime = 0; a.play();
+    setTimeout(() => a.pause(), 5000);
+    showToast('▶ Memutar musik latar (5 detik)', 'info');
+  } else {
+    const url = document.getElementById('inputNotifUrl').value.trim()
+      || 'https://cdn.pixabay.com/audio/2023/03/28/audio_a9dff50bd0.mp3';
+    const a = document.getElementById('testNotif');
+    a.src = url; a.volume = 0.7; a.currentTime = 0; a.play();
+    showToast('🔔 Suara notifikasi OTP', 'info');
+  }
+}
+
+// ============================================================
+// PAGE NAVIGATION
+// ============================================================
+const pageTitles = {
+  dashboard:'Dashboard', settings:'Pengaturan API',
+  margin:'Margin & Harga', store:'Tampilan Toko', audio:'Audio & Notifikasi',
+  users:'Data User', security:'Ubah Password Admin',
+  maintenance:'Maintenance'
+};
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const order = ['dashboard','settings','margin','store','audio','users','security','maintenance'];
+  const idx = order.indexOf(name);
+  const navItems = document.querySelectorAll('.nav-item');
+  if (idx >= 0 && navItems[idx]) navItems[idx].classList.add('active');
+  document.getElementById('topbarTitle').textContent = pageTitles[name] || name;
+  if (name === 'margin') { updateMarginPreview(); renderProfitSim(); }
+  if (name === 'users') loadUsers();
+}
+
+// ============================================================
+// LOAD USERS
+// ============================================================
+async function loadUsers() {
+  const wrap = document.getElementById('usersTableWrap');
+  wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px;">⏳ Memuat data user...</div>';
+  try {
+    const snap = await db.ref('users').once('value');
+    const data = snap.val() || {};
+    const users = Object.values(data);
+    if (!users.length) {
+      wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px;">Belum ada user terdaftar.</div>';
+      return;
+    }
+    wrap.innerHTML = `<div style="overflow-x:auto;"><table class="table-wrap" style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);">Username</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);">Email</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);">Saldo</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);">Total Deposit</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);">Total Order</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);">Daftar</th>
+        </tr>
+      </thead>
+      <tbody>${users.map(u => `
+        <tr>
+          <td style="padding:11px 12px;font-size:13px;border-bottom:1px solid rgba(37,37,53,.5);font-weight:600;">@${u.username||'-'}</td>
+          <td style="padding:11px 12px;font-size:12px;border-bottom:1px solid rgba(37,37,53,.5);color:var(--muted);">${u.email||'-'}</td>
+          <td style="padding:11px 12px;font-size:13px;border-bottom:1px solid rgba(37,37,53,.5);text-align:right;font-family:'DM Mono',monospace;color:var(--green);font-weight:700;">Rp${(u.balance||0).toLocaleString('id')}</td>
+          <td style="padding:11px 12px;font-size:13px;border-bottom:1px solid rgba(37,37,53,.5);text-align:right;font-family:'DM Mono',monospace;color:var(--accent);">Rp${(u.totalDeposit||0).toLocaleString('id')}</td>
+          <td style="padding:11px 12px;font-size:13px;border-bottom:1px solid rgba(37,37,53,.5);text-align:right;">${u.totalOrders||0}x</td>
+          <td style="padding:11px 12px;font-size:12px;border-bottom:1px solid rgba(37,37,53,.5);color:var(--muted);">${u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '-'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>
+    <div style="margin-top:12px;font-size:12px;color:var(--muted);">Total: <strong style="color:var(--text);">${users.length} user</strong></div>`;
+  } catch(e) {
+    wrap.innerHTML = '<div style="color:var(--red);font-size:13px;">Gagal memuat: ' + e.message + '</div>';
+  }
+}
+
+// ============================================================
+// SAVE ADMIN PASSWORD
+// ============================================================
+async function saveAdminPassword() {
+  const np = document.getElementById('newAdminPass').value;
+  const cp = document.getElementById('confirmAdminPass').value;
+  const err = document.getElementById('securityErr');
+  err.textContent = '';
+  if (np.length < 4) { err.textContent = 'Password minimal 4 karakter'; return; }
+  if (np !== cp) { err.textContent = 'Password tidak sama'; return; }
+  try {
+    await db.ref('admin/password').set(np);
+    showToast('✅ Password admin berhasil diubah!', 'success');
+    document.getElementById('newAdminPass').value = '';
+    document.getElementById('confirmAdminPass').value = '';
+  } catch(e) {
+    err.textContent = 'Gagal menyimpan: ' + e.message;
+  }
+}
+
+// ============================================================
+// CEGAH TOMBOL BACK HP KELUAR WEB
+// ============================================================
+history.pushState(null, '', location.href);
+window.addEventListener('popstate', () => {
+  history.pushState(null, '', location.href);
+});
+
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type='info') {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  const icon = type==='success'?'✅':type==='error'?'❌':'ℹ️';
+  t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ============================================================
+// EMOJI PICKER BUILD
+// ============================================================
+const emojis = ['🔐','🔑','🛡️','📱','💬','🌐','⚡','🔥','💎','🚀','🎯','🛒','💰','📲','🔒','🌟','💡','🎪','🏆','🎁'];
+const emojiContainer = document.querySelector('.emoji-picker');
+if (emojiContainer) {
+  emojiContainer.innerHTML = emojis.map(e =>
+    `<div class="emoji-opt" onclick="pickEmoji('${e}')" title="${e}">${e}</div>`
+  ).join('');
+}
+function pickEmoji(e) {
+  document.getElementById('inputStoreIcon').value = e;
+  document.querySelectorAll('.emoji-opt').forEach(el => el.classList.toggle('selected', el.textContent===e));
+  updatePreview();
+}
+
+// ============================================================
+// MAINTENANCE
+// ============================================================
+function toggleMaintNow() {
+  const t = document.getElementById('toggleMaint');
+  t.classList.toggle('on');
+  db.ref('config/maintEnabled').set(t.classList.contains('on'));
+  showToast(t.classList.contains('on') ? '🛠️ Maintenance diaktifkan!' : '✅ Maintenance dimatikan!', t.classList.contains('on') ? 'info' : 'success');
+}
+function turnOffMaint() {
+  document.getElementById('toggleMaint').classList.remove('on');
+  db.ref('config/maintEnabled').set(false);
+  showToast('✅ Maintenance dimatikan!', 'success');
+}
+async function saveMaintSettings() {
+  const data = {
+    maintEnabled: document.getElementById('toggleMaint').classList.contains('on'),
+    maintAuto: document.getElementById('toggleMaintAuto').classList.contains('on'),
+    maintEndTime: document.getElementById('inputMaintEnd').value || '00:10',
+    maintTitle: document.getElementById('inputMaintTitle').value || 'Sedang Maintenance',
+    maintMsg: document.getElementById('inputMaintMsg').value || 'Sistem sedang dalam pemeliharaan.',
+  };
+  await db.ref('config').update(data);
+  showToast('✅ Pengaturan maintenance disimpan!', 'success');
+}
+
+// ============================================================
+// LOGO URL
+// ============================================================
+function previewLogo() {
+  const url = document.getElementById('inputLogoUrl').value.trim();
+  const wrap = document.getElementById('logoPreviewWrap');
+  const img = document.getElementById('logoPreviewImg');
+  if (url) { img.src = url; wrap.style.display = 'block'; }
+  else { wrap.style.display = 'none'; }
+}
+async function saveLogoUrl() {
+  const url = document.getElementById('inputLogoUrl').value.trim();
+  await db.ref('config/logoUrl').set(url);
+  showToast('✅ Logo disimpan!', 'success');
+}
+
+// ============================================================
+// CEGAH TOMBOL BACK HP KELUAR WEB
+// ============================================================
+history.pushState(null, '', location.href);
+window.addEventListener('popstate', () => history.pushState(null, '', location.href));
+</script>
+</body>
+</html>
