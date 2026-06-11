@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Admin — PunggOtp</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0a0c12;--surface:#111318;--surface2:#181b24;--surface3:#1e222e;
+  --border:#252a38;--border2:#2e3447;
+  --blue:#4f8ef7;--blue2:#3a7af5;--blue-glow:rgba(79,142,247,.15);
+  --green:#34d399;--red:#f87171;--yellow:#fbbf24;--purple:#a78bfa;
+  --text:#f0f2ff;--muted:#6b7898;--muted2:#4a5270;
+  --shadow:0 2px 8px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.5);
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--surface);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ====== LOGIN ====== */
+#loginScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
+#loginScreen.hide{display:none;}
+.login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 28px;box-shadow:var(--shadow-lg);}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo-ico{width:56px;height:56px;border-radius:14px;background:var(--blue2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;box-shadow:0 0 24px var(--blue-glow);}
+.login-logo-ico svg{width:26px;height:26px;stroke:white;}
+.login-title{font-size:20px;font-weight:800;color:var(--text);}
+.login-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.fl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.fi{background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:11px 13px;color:var(--text);font-size:13px;outline:none;transition:border .18s;width:100%;}
+.fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow);}
+.fi::placeholder{color:var(--muted2);}
+.ferr{font-size:11px;color:var(--red);min-height:16px;margin-top:2px;}
+.btn-login{width:100%;padding:12px;background:var(--blue2);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;transition:all .18s;margin-top:4px;}
+.btn-login:hover{background:var(--blue);box-shadow:0 4px 16px var(--blue-glow);}
+
+/* ====== APP SHELL ====== */
+#appShell{display:flex;min-height:100vh;}
+#appShell.hide{display:none;}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0;}
+.sb-head{padding:20px 18px 16px;border-bottom:1px solid var(--border);}
+.sb-brand{display:flex;align-items:center;gap:10px;}
+.sb-logo{width:34px;height:34px;border-radius:9px;background:var(--blue2);display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px var(--blue-glow);flex-shrink:0;overflow:hidden;}
+.sb-logo img{width:100%;height:100%;object-fit:contain;}
+.sb-logo svg{width:18px;height:18px;stroke:white;}
+.sb-name{font-size:14px;font-weight:800;color:var(--text);}
+.sb-badge{font-size:9px;background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.2);border-radius:4px;padding:2px 6px;font-weight:700;letter-spacing:.3px;margin-top:2px;}
+.sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.sb-section{font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.8px;padding:14px 10px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .15s;border:1px solid transparent;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.on{background:rgba(79,142,247,.1);color:var(--blue);border-color:rgba(79,142,247,.2);}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;}
+.sb-footer{padding:14px 18px;border-top:1px solid var(--border);}
+.sb-footer-btn{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);cursor:pointer;transition:color .15s;}
+.sb-footer-btn:hover{color:var(--red);}
+.sb-footer-btn svg{width:15px;height:15px;}
+
+/* MAIN */
+.main-area{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:54px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;}
+.topbar-title{font-size:15px;font-weight:700;color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.online-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
+.topbar-info{font-size:12px;color:var(--muted);}
+
+/* CONTENT */
+.content{padding:24px;flex:1;}
+.page{display:none;animation:fadeIn .2s ease;}
+.page.on{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* PAGE HEADER */
+.ph{margin-bottom:24px;}
+.ph-title{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-.3px;}
+.ph-sub{font-size:13px;color:var(--muted);margin-top:4px;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:18px;}
+.card-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';display:block;width:3px;height:16px;background:var(--blue2);border-radius:2px;}
+.card-title svg{width:15px;height:15px;color:var(--blue);}
+
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:20px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden;}
+.stat-card::after{content:'';position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;background:var(--blue-glow);pointer-events:none;}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.stat-val{font-size:22px;font-weight:800;letter-spacing:-.3px;}
+.stat-val.blue{color:var(--blue);}
+.stat-val.green{color:var(--green);}
+.stat-val.yellow{color:var(--yellow);}
+.stat-val.purple{color:var(--purple);}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid.cols1{grid-template-columns:1fr;}
+.fg-full{grid-column:1/-1;}
+.input-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+.fi-mono{font-family:'SF Mono','Fira Code',monospace;font-size:12px;letter-spacing:.3px;}
+
+/* PASSWORD SHOW/HIDE */
+.fi-wrap{position:relative;}
+.fi-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--muted);transition:color .15s;}
+.fi-eye:hover{color:var(--text);}
+.fi-eye svg{width:15px;height:15px;}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-info .t-lbl{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.toggle-info .t-sub{font-size:11px;color:var(--muted);}
+.toggle{width:42px;height:23px;background:var(--border2);border-radius:12px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--blue2);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.toggle.on::after{transform:translateX(19px);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:9px;border:none;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;}
+.btn-primary{background:var(--blue2);color:#fff;box-shadow:0 4px 14px var(--blue-glow);}
+.btn-primary:hover{background:var(--blue);transform:translateY(-1px);}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border2);}
+.btn-secondary:hover{border-color:var(--blue);color:var(--blue);}
+.btn-danger{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2);}
+.btn-danger:hover{background:rgba(248,113,113,.18);}
+.btn-success{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.2);}
+.btn-success:hover{background:rgba(52,211,153,.18);}
+.btn-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:14px;}
+.btn svg{width:14px;height:14px;}
+
+/* PROFIT SIM */
+.profit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+.profit-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px;text-align:center;}
+.profit-item-n{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.profit-item-v{font-size:15px;font-weight:800;color:var(--green);}
+.profit-item-sub{font-size:10px;color:var(--muted2);margin-top:2px;}
+
+/* MARGIN PREVIEW */
+.margin-preview{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;flex-wrap:wrap;}
+.mp-box{text-align:center;}
+.mp-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.mp-val{font-size:18px;font-weight:800;}
+.mp-val.blue{color:var(--blue);}
+.mp-val.yellow{color:var(--yellow);}
+.mp-val.green{color:var(--green);}
+.mp-op{font-size:18px;color:var(--muted);font-weight:300;}
+
+/* EMOJI PICKER */
+.emoji-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.emoji-opt{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:7px;cursor:pointer;transition:background .15s;border:1px solid transparent;}
+.emoji-opt:hover{background:var(--surface2);}
+.emoji-opt.on{background:rgba(79,142,247,.15);border-color:rgba(79,142,247,.3);}
+
+/* LOGO PREVIEW */
+.logo-preview-wrap{display:flex;align-items:center;gap:14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:10px;}
+.logo-preview-img{width:48px;height:48px;border-radius:12px;object-fit:contain;background:var(--surface3);border:1px solid var(--border);}
+.logo-preview-name{font-size:15px;font-weight:800;color:var(--text);}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--surface2);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+td{padding:12px 14px;font-size:13px;border-top:1px solid var(--border);vertical-align:middle;}
+tr:hover td{background:rgba(79,142,247,.03);}
+.badge{display:inline-flex;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;}
+.badge-green{background:rgba(52,211,153,.1);color:var(--green);}
+.badge-blue{background:rgba(79,142,247,.1);color:var(--blue);}
+.badge-yellow{background:rgba(251,191,36,.1);color:var(--yellow);}
+.badge-red{background:rgba(248,113,113,.1);color:var(--red);}
+
+/* API TEST */
+.api-result{border-radius:10px;padding:12px 14px;font-size:12px;margin-top:12px;}
+.api-result.ok{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);color:var(--green);}
+.api-result.err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red);}
+
+/* MAINT SCHEDULE */
+.schedule-card{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:12px;padding:14px 16px;font-size:12px;color:var(--yellow);line-height:1.7;margin-top:12px;}
+.schedule-card b{color:#fff;}
+
+/* TOAST */
+.toasts{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:7px;}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-lg);animation:toastIn .2s ease;min-width:220px;}
+.toast.ok{border-left:3px solid var(--green);}
+.toast.err{border-left:3px solid var(--red);}
+.toast.info{border-left:3px solid var(--blue);}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--muted);}
+.spin{width:28px;height:28px;border:2.5px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* RESPONSIVE */
+@media(max-width:720px){
+  .sidebar{display:none;}
+  .form-grid{grid-template-columns:1fr;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .content{padding:16px;}
+}
+</style>
+</head>
+<body>
+<div class="toasts" id="toasts"></div>
+
+<!-- ====== LOGIN ====== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="login-title">Admin Panel</div>
+      <div class="login-sub">Masukkan password untuk lanjut</div>
+    </div>
+    <div class="fg">
+      <label class="fl">Password</label>
+      <div class="fi-wrap">
+        <input class="fi" type="password" id="lPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+        <div class="fi-eye" onclick="togglePw('lPass',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="ferr" id="lErr"></div>
+    <button class="btn-login" onclick="doLogin()" id="btnLogin">Masuk ke Dashboard</button>
+  </div>
+</div>
+
+<!-- ====== APP SHELL ====== -->
+<div id="appShell" class="hide">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-head">
+      <div class="sb-brand">
+        <div class="sb-logo" id="sbLogo">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div>
+          <div class="sb-name" id="sbName">PunggOtp</div>
+          <div class="sb-badge">ADMIN</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Overview</div>
+      <div class="nav-item on" onclick="goPage('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="goPage('users')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Data User
+      </div>
+      <div class="sb-section">Konfigurasi</div>
+      <div class="nav-item" onclick="goPage('api')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        API & Margin
+      </div>
+      <div class="nav-item" onclick="goPage('livechat')" id="navLiveChat" style="position:relative;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Live Chat
+        <span id="lcBadge" style="display:none;position:absolute;right:10px;background:var(--red);color:#fff;font-size:10px;font-weight:800;border-radius:10px;padding:1px 6px;">0</span>
+      </div>
+      <div class="nav-item" onclick="goPage('maintenance')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Maintenance
+      </div>
+      <div class="sb-section">Akun</div>
+      <div class="nav-item" onclick="goPage('security')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Ubah Password
+      </div>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-footer-btn" onclick="doLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-right">
+        <div class="online-dot"></div>
+        <span class="topbar-info">Firebase Connected</span>
+        <a href="store.html" target="_blank" style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--blue);font-weight:600;text-decoration:none;padding:6px 12px;background:rgba(79,142,247,.1);border-radius:7px;border:1px solid rgba(79,142,247,.2);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Lihat Toko
+        </a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div class="page on" id="page-dashboard">
+        <div class="ph"><div class="ph-title">Dashboard</div><div class="ph-sub">Ringkasan status toko kamu</div></div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-lbl">Saldo API</div>
+            <div class="stat-val blue" id="dBal">—</div>
+            <div class="stat-sub">rumahotp.io</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Margin</div>
+            <div class="stat-val green" id="dMargin">Rp0</div>
+            <div class="stat-sub">per nomor</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Total User</div>
+            <div class="stat-val yellow" id="dUsers">—</div>
+            <div class="stat-sub">terdaftar</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Status API</div>
+            <div class="stat-val purple" id="dApiStatus">—</div>
+            <div class="stat-sub" id="dApiKey">belum diset</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">API Key Aktif</div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;font-family:'SF Mono','Fira Code',monospace;font-size:12px;color:var(--muted);word-break:break-all;" id="dApiKeyFull">Belum dikonfigurasi</div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" onclick="goPage('api')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit API Key
+            </button>
+            <button class="btn btn-secondary" onclick="checkBalance()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Cek Saldo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== USERS ===== -->
+      <div class="page" id="page-users">
+        <div class="ph"><div class="ph-title">Data User</div><div class="ph-sub">Semua pengguna terdaftar</div></div>
+        <div class="card">
+          <div class="card-title">Daftar User</div>
+          <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
+            <button class="btn btn-secondary" onclick="loadUsers()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div id="usersTable"><div class="loading"><div class="spin"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ===== API & MARGIN ===== -->
+      <div class="page" id="page-api">
+        <div class="ph"><div class="ph-title">API & Margin</div><div class="ph-sub">Konfigurasi koneksi rumahotp.io dan keuntungan penjualan</div></div>
+
+        <!-- API KEY -->
+        <div class="card">
+          <div class="card-title">API Key RumahOTP</div>
+          <div class="form-grid cols1">
+            <div class="fg">
+              <label class="fl">API Key</label>
+              <div class="fi-wrap">
+                <input class="fi fi-mono" type="password" id="iApiKey" placeholder="Masukkan API Key dari rumahotp.io...">
+                <div class="fi-eye" onclick="togglePw('iApiKey',this)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+              </div>
+              <div class="input-hint">Dapatkan API Key dari dashboard rumahotp.io → Profile → API Key</div>
+            </div>
+          </div>
+          <div id="apiTestResult"></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveApiKey()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Simpan API Key
+            </button>
+            <button class="btn btn-secondary" onclick="testApi()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Test Koneksi
+            </button>
+          </div>
+          <div style="margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Endpoint Utama</div>
+            <div style="font-family:'SF Mono','Fira Code',monospace;font-size:11px;color:var(--muted);line-height:2;">
+              <div><span style="color:var(--green)">GET</span> /v1/user/balance</div>
+              <div><span style="color:var(--green)">GET</span> /v2/services</div>
+              <div><span style="color:var(--green)">GET</span> /v2/countries?service_id=</div>
+              <div><span style="color:var(--green)">GET</span> /v2/orders?number_id=&provider_id=&operator_id=</div>
+              <div><span style="color:var(--green)">GET</span> /v1/orders/get_status?order_id=</div>
+              <div><span style="color:var(--green)">GET</span> /v1/deposit/create?amount=&payment_id=qris</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MARGIN -->
+        <div class="card">
+          <div class="card-title">Margin Penjualan</div>
+          <div class="form-grid">
+            <div class="fg">
+              <label class="fl">Margin per Nomor (Rupiah)</label>
+              <input class="fi" type="number" id="iMargin" placeholder="0" min="0" step="100" oninput="updateMarginPreview()">
+              <div class="input-hint">Keuntungan yang kamu ambil di atas harga dasar API</div>
+            </div>
+            <div class="fg">
+              <label class="fl">Preview Harga</label>
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 13px;font-size:12px;color:var(--muted);" id="marginPreviewText">Masukkan margin untuk melihat preview</div>
+            </div>
+          </div>
+          <div class="margin-preview" id="marginPreviewBox" style="display:none;">
+            <div class="mp-box"><div class="mp-lbl">Harga Dasar</div><div class="mp-val blue" id="mpBase">Rp1.100</div></div>
+            <div class="mp-op">+</div>
+            <div class="mp-box"><div class="mp-lbl">Margin</div><div class="mp-val yellow" id="mpMargin">Rp0</div></div>
+            <div class="mp-op">=</div>
+            <div class="mp-box"><div class="mp-lbl">Harga Jual</div><div class="mp-val green" id="mpFinal">Rp1.100</div></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveMargin()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Simpan Margin
+            </button>
+          </div>
+        </div>
+
+        <!-- PROFIT SIM -->
+        <div class="card">
+          <div class="card-title">Simulasi Profit Harian</div>
+          <div class="profit-grid" id="profitGrid"></div>
+        </div>
+
+        <!-- IDENTITAS TOKO -->
+        <div class="card">
+          <div class="card-title">Identitas Toko</div>
+          <div class="form-grid">
+            <div class="fg">
+              <label class="fl">Nama Toko</label>
+              <input class="fi" id="iName" placeholder="PunggOtp" oninput="updateStorePreview()">
+            </div>
+            <div class="fg">
+              <label class="fl">URL Logo (Gambar)</label>
+              <input class="fi" id="iLogoUrl" placeholder="https://contoh.com/logo.png" oninput="updateStorePreview()">
+              <div class="input-hint">PNG/JPG transparan. Kosongkan untuk pakai ikon default.</div>
+            </div>
+            <div class="fg fg-full">
+              <label class="fl">Judul Hero</label>
+              <input class="fi" id="iHeroTitle" placeholder="Terima SMS online ke nomor virtual">
+            </div>
+            <div class="fg fg-full">
+              <label class="fl">Subtitle Hero</label>
+              <input class="fi" id="iHeroSub" placeholder="Untuk registrasi privat di berbagai situs...">
+            </div>
+            <div class="fg fg-full">
+              <label class="fl">Link Customer Service (WhatsApp / Telegram)</label>
+              <input class="fi" id="iCsLink" placeholder="https://wa.me/6281234567890">
+            </div>
+          </div>
+          <!-- PREVIEW -->
+          <div class="logo-preview-wrap" id="logoPreviewWrap">
+            <div style="width:48px;height:48px;border-radius:12px;background:var(--surface3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;" id="logoPreviewIco">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div class="logo-preview-name" id="logoPreviewName">PunggOtp</div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveStore()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Simpan Tampilan
+            </button>
+            <a href="store.html" target="_blank" class="btn btn-secondary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Preview Toko
+            </a>
+          </div>
+        </div>
+
+        <!-- AUDIO -->
+        <div class="card">
+          <div class="card-title">Audio Toko</div>
+          <div class="toggle-row">
+            <div class="toggle-info"><div class="t-lbl">Musik Latar (Autoplay)</div><div class="t-sub">Putar otomatis setelah interaksi pertama user di toko</div></div>
+            <div class="toggle" id="tBgMusic" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info"><div class="t-lbl">Suara Notifikasi OTP</div><div class="t-sub">Mainkan suara saat kode OTP berhasil diterima</div></div>
+            <div class="toggle on" id="tOtpSound" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="form-grid cols1" style="margin-top:14px;">
+            <div class="fg">
+              <label class="fl">URL Musik Latar (MP3)</label>
+              <input class="fi" id="iAudioUrl" placeholder="https://contoh.com/musik.mp3">
+              <div class="input-hint">Link MP3 langsung. Kosongkan untuk pakai audio default.</div>
+            </div>
+            <div class="fg">
+              <label class="fl">URL Suara Notifikasi OTP (MP3)</label>
+              <input class="fi" id="iNotifUrl" placeholder="https://contoh.com/notif.mp3">
+              <div class="input-hint">Suara pendek yang diputar saat OTP diterima.</div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" onclick="testAudio('bg')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Test Musik
+            </button>
+            <button class="btn btn-secondary" onclick="testAudio('notif')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Test Notif
+            </button>
+            <button class="btn btn-primary" onclick="saveAudio()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Simpan Audio
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== LIVE CHAT ===== -->
+      <div class="page" id="page-livechat">
+        <div class="ph"><div class="ph-title">Live Chat</div><div class="ph-sub">Pesan dari pengguna toko</div></div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <div class="card" style="flex:1;min-width:220px;max-width:280px;max-height:560px;overflow-y:auto;">
+            <div class="card-title">Percakapan</div>
+            <div id="lcConvList"><div class="loading"><div class="spin"></div></div></div>
+          </div>
+          <div class="card" style="flex:2;min-width:280px;display:flex;flex-direction:column;height:560px;">
+            <div class="card-title" id="lcChatTitle">Pilih percakapan</div>
+            <div id="lcMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:6px 2px;"></div>
+            <div id="lcInputArea" style="display:none;margin-top:12px;gap:8px;">
+              <input class="fi" id="lcInput" placeholder="Tulis balasan..." onkeydown="if(event.key==='Enter')lcSend()" style="flex:1;">
+              <button class="btn btn-primary" onclick="lcSend()" style="flex-shrink:0;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MAINTENANCE ===== -->
+      <div class="page" id="page-maintenance">
+        <div class="ph"><div class="ph-title">Maintenance</div><div class="ph-sub">Tutup akses toko sementara untuk pemeliharaan</div></div>
+        <div class="card" style="max-width:520px;">
+          <div class="card-title">Status Maintenance</div>
+          <div class="toggle-row">
+            <div class="toggle-info"><div class="t-lbl">Aktifkan Maintenance Sekarang</div><div class="t-sub">Semua pengunjung akan melihat halaman maintenance</div></div>
+            <div class="toggle" id="tMaint" onclick="toggleMaint()"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info"><div class="t-lbl">Auto Maintenance Jam 23:00</div><div class="t-sub">Otomatis aktif setiap 23:00 dan selesai jam 00:10</div></div>
+            <div class="toggle" id="tMaintAuto" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="form-grid" style="margin-top:16px;">
+            <div class="fg">
+              <label class="fl">Jam Selesai</label>
+              <input class="fi" id="iMaintEnd" placeholder="00:10" value="00:10">
+              <div class="input-hint">Format HH:MM</div>
+            </div>
+            <div class="fg">
+              <label class="fl">Judul Halaman</label>
+              <input class="fi" id="iMaintTitle" placeholder="Sedang Maintenance">
+            </div>
+            <div class="fg fg-full">
+              <label class="fl">Pesan</label>
+              <input class="fi" id="iMaintMsg" placeholder="Sistem sedang dalam pemeliharaan rutin...">
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveMaint()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Simpan
+            </button>
+            <button class="btn btn-success" onclick="turnOffMaint()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Matikan Sekarang
+            </button>
+          </div>
+          <div class="schedule-card">
+            Jadwal rumahotp.io: Maintenance mulai <b>23:00</b> selesai <b>00:10</b> WIB setiap hari.
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SECURITY ===== -->
+      <div class="page" id="page-security">
+        <div class="ph"><div class="ph-title">Ubah Password Admin</div><div class="ph-sub">Ganti password login dashboard</div></div>
+        <div class="card" style="max-width:400px;">
+          <div class="card-title">Password Baru</div>
+          <div class="fg">
+            <label class="fl">Password Baru</label>
+            <div class="fi-wrap">
+              <input class="fi" type="password" id="iNewPass" placeholder="Minimal 4 karakter">
+              <div class="fi-eye" onclick="togglePw('iNewPass',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">Konfirmasi</label>
+            <div class="fi-wrap">
+              <input class="fi" type="password" id="iConfPass" placeholder="Ulangi password">
+              <div class="fi-eye" onclick="togglePw('iConfPass',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            </div>
+          </div>
+          <div class="ferr" id="passErr"></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="savePassword()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Simpan Password
+            </button>
+          </div>
+          <div style="margin-top:14px;font-size:12px;color:var(--muted);">Password default: <code style="background:var(--surface2);padding:2px 8px;border-radius:5px;color:var(--text);">ipungg</code></div>
+        </div>
+      </div>
+
+    </div><!-- end content -->
+  </div><!-- end main-area -->
+</div><!-- end appShell -->
+
+<audio id="testBg" loop></audio>
+<audio id="testNotif"></audio>
+
+<script>
+// ===== FIREBASE =====
+firebase.initializeApp({
+  apiKey:"AIzaSyA9tSehgxD2Pgb7YPy7Pq-_bcuKLKswyos",
+  authDomain:"ipung-store-2b96d.firebaseapp.com",
+  databaseURL:"https://ipung-store-2b96d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"ipung-store-2b96d",
+  storageBucket:"ipung-store-2b96d.firebasestorage.app",
+  appId:"1:906202337063:web:1a39b7bad99a85b23c2302"
+});
+const db=firebase.database();
+
+// ===== PREVENT BACK EXIT =====
+history.pushState(null,'',location.href);
+window.addEventListener('popstate',()=>history.pushState(null,'',location.href));
+
+// ===== STATE =====
+let config={};
+const SK='_adm_s';
+const authed=()=>sessionStorage.getItem(SK)==='1';
+
+// ===== INIT =====
+window.addEventListener('load',()=>{
+  if(authed()){showApp();}
+  else{document.getElementById('loginScreen').classList.remove('hide');}
+});
+
+// ===== LOGIN =====
+async function doLogin(){
+  const pw=document.getElementById('lPass').value;
+  const e=document.getElementById('lErr');e.textContent='';
+  if(!pw){e.textContent='Masukkan password';return;}
+  const btn=document.getElementById('btnLogin');btn.disabled=true;btn.textContent='Memproses...';
+  const snap=await db.ref('admin/password').once('value');
+  const stored=snap.val()||'ipungg';
+  if(pw===stored){
+    sessionStorage.setItem(SK,'1');
+    document.getElementById('loginScreen').classList.add('hide');
+    showApp();
+  } else {
+    e.textContent='Password salah!';
+  }
+  btn.disabled=false;btn.textContent='Masuk ke Dashboard';
+}
+function doLogout(){sessionStorage.removeItem(SK);location.reload();}
+
+function showApp(){
+  document.getElementById('appShell').classList.remove('hide');
+  loadConfig();
+  // global unread badge listener
+  db.ref('chats').on('value',s=>{
+    const chats=s.val()||{};
+    let total=0;
+    Object.values(chats).forEach(msgs=>{
+      Object.values(msgs||{}).forEach(m=>{if(m.from==='user'&&!m.read)total++;});
+    });
+    const badge=document.getElementById('lcBadge');
+    if(total>0){badge.style.display='inline-block';badge.textContent=total>99?'99+':total;}
+    else badge.style.display='none';
+  });
+}
+
+// ===== LOAD CONFIG =====
+function loadConfig(){
+  db.ref('config').on('value',s=>{
+    config=s.val()||{};
+    applyConfig();
+  });
+  // count users for dashboard
+  db.ref('users').once('value',s=>{
+    const n=s.val()?Object.keys(s.val()).length:0;
+    document.getElementById('dUsers').textContent=n;
+  });
+}
+
+function applyConfig(){
+  const c=config;
+  // Sidebar logo/name
+  const name=c.storeName||'PunggOtp';
+  document.getElementById('sbName').textContent=name;
+  if(c.logoUrl){
+    document.getElementById('sbLogo').innerHTML=`<img src="${c.logoUrl}" onerror="this.parentElement.innerHTML='<svg viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'white\\' stroke-width=\\'2.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><rect x=\\'3\\' y=\\'11\\' width=\\'18\\' height=\\'11\\' rx=\\'2\\'/><path d=\\'M7 11V7a5 5 0 0 1 10 0v4\\'/></svg>'">`;
+  }
+  // Dashboard stats
+  document.getElementById('dMargin').textContent='Rp'+(c.margin||0).toLocaleString('id');
+  document.getElementById('dApiKeyFull').textContent=c.apiKey||'Belum dikonfigurasi';
+  if(c.apiKey){
+    document.getElementById('dApiStatus').textContent='Aktif';
+    document.getElementById('dApiKey').textContent='***'+c.apiKey.slice(-6);
+    checkBalance();
+  } else {
+    document.getElementById('dApiStatus').textContent='Belum diset';
+  }
+  // API page
+  if(c.apiKey) document.getElementById('iApiKey').value=c.apiKey;
+  document.getElementById('iMargin').value=c.margin||0;
+  updateMarginPreview();
+  renderProfitSim();
+  // Store page
+  document.getElementById('iName').value=c.storeName||'PunggOtp';
+  document.getElementById('iLogoUrl').value=c.logoUrl||'';
+  document.getElementById('iHeroTitle').value=c.heroTitle||'';
+  document.getElementById('iHeroSub').value=c.heroSubtitle||'';
+  document.getElementById('iCsLink').value=c.csLink||'';
+  updateStorePreview();
+  // Audio page
+  setToggle('tBgMusic',c.audioEnabled);
+  setToggle('tOtpSound',c.otpSound!==false);
+  if(c.audioUrl) document.getElementById('iAudioUrl').value=c.audioUrl;
+  if(c.notifAudioUrl) document.getElementById('iNotifUrl').value=c.notifAudioUrl;
+  // Maintenance page
+  setToggle('tMaint',c.maintEnabled);
+  setToggle('tMaintAuto',c.maintAuto);
+  if(c.maintEndTime) document.getElementById('iMaintEnd').value=c.maintEndTime;
+  if(c.maintTitle) document.getElementById('iMaintTitle').value=c.maintTitle;
+  if(c.maintMsg) document.getElementById('iMaintMsg').value=c.maintMsg;
+}
+
+// ===== NAVIGATION =====
+const pageTitles={dashboard:'Dashboard',users:'Data User',api:'API & Margin',livechat:'Live Chat',maintenance:'Maintenance',security:'Ubah Password'};
+function goPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('on'));
+  document.getElementById('page-'+name).classList.add('on');
+  const items=document.querySelectorAll('.nav-item');
+  const order=['dashboard','users','api','livechat','maintenance','security'];
+  const idx=order.indexOf(name);
+  if(idx>=0&&items[idx]) items[idx].classList.add('on');
+  document.getElementById('topbarTitle').textContent=pageTitles[name]||name;
+  if(name==='users') loadUsers();
+  if(name==='livechat') loadLiveChat();
+}
+
+// ===== API KEY =====
+async function saveApiKey(){
+  const k=document.getElementById('iApiKey').value.trim();
+  if(!k){toast('API Key tidak boleh kosong','err');return;}
+  await db.ref('config/apiKey').set(k);
+  toast('API Key disimpan!','ok');
+}
+
+async function testApi(){
+  const k=document.getElementById('iApiKey').value.trim()||config.apiKey;
+  if(!k){toast('API Key belum diisi','err');return;}
+  const res=document.getElementById('apiTestResult');
+  res.innerHTML='<div style="font-size:12px;color:var(--muted);margin-top:10px;">Testing...</div>';
+  try{
+    const r=await fetch('https://www.rumahotp.io/api/v1/user/balance',{headers:{'x-apikey':k,'Accept':'application/json'}});
+    const d=await r.json();
+    if(d&&d.success){
+      res.innerHTML=`<div class="api-result ok">Koneksi berhasil! Saldo: <b>${d.data.formated}</b> · Akun: ${d.data.username}</div>`;
+      document.getElementById('dBal').textContent=d.data.formated;
+    } else {
+      res.innerHTML=`<div class="api-result err">API Key tidak valid atau terjadi kesalahan.</div>`;
+    }
+  }catch{
+    res.innerHTML=`<div class="api-result err">Gagal terhubung (CORS). Coba jalankan dari server atau cek API Key.</div>`;
+  }
+}
+
+async function checkBalance(){
+  if(!config.apiKey)return;
+  try{
+    const r=await fetch('https://www.rumahotp.io/api/v1/user/balance',{headers:{'x-apikey':config.apiKey,'Accept':'application/json'}});
+    const d=await r.json();
+    if(d&&d.success) document.getElementById('dBal').textContent=d.data.formated;
+  }catch{}
+}
+
+// ===== MARGIN =====
+async function saveMargin(){
+  const m=parseInt(document.getElementById('iMargin').value)||0;
+  await db.ref('config/margin').set(m);
+  toast('Margin Rp'+m.toLocaleString('id')+' disimpan!','ok');
+}
+
+function updateMarginPreview(){
+  const m=parseInt(document.getElementById('iMargin').value)||0;
+  const base=1100;
+  document.getElementById('marginPreviewText').innerHTML=
+    `Harga dasar <b style="color:var(--blue)">Rp${base.toLocaleString('id')}</b> + margin <b style="color:var(--yellow)">Rp${m.toLocaleString('id')}</b> = harga jual <b style="color:var(--green)">Rp${(base+m).toLocaleString('id')}</b>`;
+  document.getElementById('marginPreviewBox').style.display='flex';
+  document.getElementById('mpBase').textContent='Rp'+base.toLocaleString('id');
+  document.getElementById('mpMargin').textContent='Rp'+m.toLocaleString('id');
+  document.getElementById('mpFinal').textContent='Rp'+(base+m).toLocaleString('id');
+  renderProfitSim();
+}
+
+function renderProfitSim(){
+  const m=parseInt(document.getElementById('iMargin')?.value)||config.margin||0;
+  const ns=[5,10,20,50,100,200];
+  document.getElementById('profitGrid').innerHTML=ns.map(n=>`
+    <div class="profit-item">
+      <div class="profit-item-n">${n} nomor/hari</div>
+      <div class="profit-item-v">Rp${(n*m).toLocaleString('id')}</div>
+      <div class="profit-item-sub">per hari</div>
+    </div>`).join('');
+}
+
+// ===== STORE =====
+async function saveStore(){
+  const data={
+    storeName:document.getElementById('iName').value||'PunggOtp',
+    logoUrl:document.getElementById('iLogoUrl').value.trim(),
+    heroTitle:document.getElementById('iHeroTitle').value,
+    heroSubtitle:document.getElementById('iHeroSub').value,
+    csLink:document.getElementById('iCsLink').value.trim(),
+  };
+  await db.ref('config').update(data);
+  toast('Tampilan toko disimpan!','ok');
+}
+
+function updateStorePreview(){
+  const name=document.getElementById('iName').value||'PunggOtp';
+  const url=document.getElementById('iLogoUrl').value.trim();
+  document.getElementById('logoPreviewName').textContent=name;
+  const ico=document.getElementById('logoPreviewIco');
+  if(url){
+    ico.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentElement.innerHTML='<svg width=22 height=22 viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'var(--blue)\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><rect x=\\'3\\' y=\\'11\\' width=\\'18\\' height=\\'11\\' rx=\\'2\\'/><path d=\\'M7 11V7a5 5 0 0 1 10 0v4\\'/></svg>'">`;
+  } else {
+    ico.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+  }
+}
+
+// ===== AUDIO =====
+async function saveAudio(){
+  const data={
+    audioEnabled:document.getElementById('tBgMusic').classList.contains('on'),
+    otpSound:document.getElementById('tOtpSound').classList.contains('on'),
+    audioUrl:document.getElementById('iAudioUrl').value.trim(),
+    notifAudioUrl:document.getElementById('iNotifUrl').value.trim(),
+  };
+  await db.ref('config').update(data);
+  toast('Pengaturan audio disimpan!','ok');
+}
+
+function testAudio(type){
+  if(type==='bg'){
+    const url=document.getElementById('iAudioUrl').value.trim()||'https://cdn.pixabay.com/audio/2022/11/17/audio_febc508520.mp3';
+    const a=document.getElementById('testBg');a.src=url;a.volume=0.25;a.currentTime=0;a.play();
+    setTimeout(()=>a.pause(),5000);toast('Memutar 5 detik...','info');
+  } else {
+    const url=document.getElementById('iNotifUrl').value.trim()||'https://cdn.pixabay.com/audio/2023/03/28/audio_a9dff50bd0.mp3';
+    const a=document.getElementById('testNotif');a.src=url;a.volume=0.7;a.currentTime=0;a.play();
+    toast('Suara notifikasi','info');
+  }
+}
+
+// ===== LIVE CHAT =====
+let lcCurrentUid=null;
+let lcConvUnsub=null,lcMsgUnsub=null;
+
+function loadLiveChat(){
+  const list=document.getElementById('lcConvList');
+  if(lcConvUnsub) db.ref('chats').off('value',lcConvUnsub);
+  lcConvUnsub=db.ref('chats').on('value',s=>{
+    const chats=s.val()||{};
+    const convs=Object.keys(chats).map(uid=>{
+      const msgs=chats[uid]||{};
+      const arr=Object.values(msgs);
+      const last=arr[arr.length-1];
+      const unread=arr.filter(m=>m.from==='user'&&!m.read).length;
+      return{uid,last,unread,name:last?last.username||uid:uid};
+    }).sort((a,b)=>(b.last?.ts||0)-(a.last?.ts||0));
+
+    // badge total unread
+    const totalUnread=convs.reduce((a,c)=>a+c.unread,0);
+    const badge=document.getElementById('lcBadge');
+    if(totalUnread>0){badge.style.display='inline-block';badge.textContent=totalUnread>99?'99+':totalUnread;}
+    else badge.style.display='none';
+
+    if(!convs.length){list.innerHTML='<div style="padding:14px;color:var(--muted);font-size:12px;">Belum ada percakapan.</div>';return;}
+    list.innerHTML=convs.map(c=>`
+      <div onclick="lcOpen('${c.uid}','${(c.name||'').replace(/'/g,"\\'")}')" style="padding:11px 10px;border-radius:9px;cursor:pointer;margin-bottom:4px;background:${c.uid===lcCurrentUid?'var(--surface2)':'transparent'};border:1px solid ${c.uid===lcCurrentUid?'var(--border2)':'transparent'};">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;font-weight:700;color:var(--text);">@${c.name||c.uid}</span>
+          ${c.unread>0?`<span style="background:var(--red);color:#fff;font-size:10px;font-weight:800;border-radius:10px;padding:1px 6px;">${c.unread}</span>`:''}
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.last?(c.last.from==='admin'?'Anda: ':'')+c.last.text:''}</div>
+      </div>`).join('');
+  });
+}
+
+function lcOpen(uid,name){
+  lcCurrentUid=uid;
+  document.getElementById('lcChatTitle').textContent='@'+name;
+  document.getElementById('lcInputArea').style.display='flex';
+  if(lcMsgUnsub) db.ref('chats/'+uid).off('value',lcMsgUnsub);
+  lcMsgUnsub=db.ref('chats/'+uid).on('value',s=>{
+    const msgs=s.val()||{};
+    const arr=Object.entries(msgs).sort((a,b)=>(a[1].ts||0)-(b[1].ts||0));
+    const box=document.getElementById('lcMessages');
+    box.innerHTML=arr.map(([id,m])=>`
+      <div style="align-self:${m.from==='admin'?'flex-end':'flex-start'};max-width:75%;">
+        <div style="background:${m.from==='admin'?'var(--blue2)':'var(--surface2)'};color:${m.from==='admin'?'#fff':'var(--text)'};border-radius:12px;padding:9px 13px;font-size:13px;border:1px solid ${m.from==='admin'?'transparent':'var(--border)'};">${esc2(m.text)}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;text-align:${m.from==='admin'?'right':'left'};">${m.ts?new Date(m.ts).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):''}</div>
+      </div>`).join('');
+    box.scrollTop=box.scrollHeight;
+    // mark user msgs as read
+    arr.forEach(([id,m])=>{if(m.from==='user'&&!m.read) db.ref('chats/'+uid+'/'+id+'/read').set(true);});
+  });
+  // refresh conv list highlight
+  loadLiveChat();
+}
+
+async function lcSend(){
+  if(!lcCurrentUid)return;
+  const inp=document.getElementById('lcInput');
+  const text=inp.value.trim();
+  if(!text)return;
+  await db.ref('chats/'+lcCurrentUid).push({from:'admin',text,ts:Date.now(),read:true});
+  inp.value='';
+}
+function esc2(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+// ===== MAINTENANCE =====
+function toggleMaint(){
+  const t=document.getElementById('tMaint');
+  t.classList.toggle('on');
+  db.ref('config/maintEnabled').set(t.classList.contains('on'));
+  toast(t.classList.contains('on')?'Maintenance diaktifkan':'Maintenance dimatikan',t.classList.contains('on')?'info':'ok');
+}
+function turnOffMaint(){
+  document.getElementById('tMaint').classList.remove('on');
+  db.ref('config/maintEnabled').set(false);
+  toast('Maintenance dimatikan','ok');
+}
+async function saveMaint(){
+  await db.ref('config').update({
+    maintEnabled:document.getElementById('tMaint').classList.contains('on'),
+    maintAuto:document.getElementById('tMaintAuto').classList.contains('on'),
+    maintEndTime:document.getElementById('iMaintEnd').value||'00:10',
+    maintTitle:document.getElementById('iMaintTitle').value||'Sedang Maintenance',
+    maintMsg:document.getElementById('iMaintMsg').value||'Sistem sedang dalam pemeliharaan.',
+  });
+  toast('Pengaturan maintenance disimpan!','ok');
+}
+
+// ===== PASSWORD =====
+async function savePassword(){
+  const np=document.getElementById('iNewPass').value;
+  const cp=document.getElementById('iConfPass').value;
+  const e=document.getElementById('passErr');e.textContent='';
+  if(np.length<4){e.textContent='Minimal 4 karakter';return;}
+  if(np!==cp){e.textContent='Password tidak sama';return;}
+  await db.ref('admin/password').set(np);
+  toast('Password berhasil diubah!','ok');
+  document.getElementById('iNewPass').value='';document.getElementById('iConfPass').value='';
+}
+
+// ===== USERS =====
+async function loadUsers(){
+  const el=document.getElementById('usersTable');
+  el.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  const snap=await db.ref('users').once('value');
+  const data=snap.val()||{};
+  const users=Object.values(data);
+  if(!users.length){el.innerHTML='<div style="padding:20px;color:var(--muted);font-size:13px;">Belum ada user terdaftar.</div>';return;}
+  el.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr>
+      <th>Username</th><th>Email</th><th>Saldo</th><th>Total Deposit</th><th>Total Order</th><th>Daftar</th>
+    </tr></thead>
+    <tbody>${users.map(u=>`<tr>
+      <td><b>@${u.username||'-'}</b></td>
+      <td style="color:var(--muted)">${u.email||'-'}</td>
+      <td><span class="badge badge-green">Rp${(u.balance||0).toLocaleString('id')}</span></td>
+      <td style="color:var(--blue)">Rp${(u.totalDeposit||0).toLocaleString('id')}</td>
+      <td>${u.totalOrders||0}x</td>
+      <td style="color:var(--muted);font-size:12px;">${u.joinedAt?new Date(u.joinedAt).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'-'}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>
+  <div style="margin-top:10px;font-size:12px;color:var(--muted);">Total: <b style="color:var(--text)">${users.length} user</b></div>`;
+}
+
+// ===== HELPERS =====
+function setToggle(id,val){const el=document.getElementById(id);if(el)el.classList.toggle('on',!!val);}
+
+function togglePw(id,btn){
+  const el=document.getElementById(id);
+  el.type=el.type==='password'?'text':'password';
+}
+
+function toast(msg,type=''){
+  const c=document.getElementById('toasts'),t=document.createElement('div');
+  t.className='toast'+(type?' '+type:'');
+  const ico=type==='ok'?'✓':type==='err'?'✕':'ℹ';
+  t.innerHTML=`<span style="font-weight:800">${ico}</span><span>${msg}</span>`;
+  c.appendChild(t);setTimeout(()=>t.remove(),3800);
+}
+</script>
+</body>
+</html>
